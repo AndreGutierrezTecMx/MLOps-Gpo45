@@ -1,0 +1,85 @@
+# ================================================
+# 🧠 .gitignore for MLOps / ML Python Projects
+# ================================================
+
+# -------------------------------
+# 🐍 Python general
+# -------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.pdb
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.ipynb_checkpoints/
+
+# Compiled C extensions
+*.so
+*.dll
+*.dylib
+
+# -------------------------------
+# 📦 Package & build artifacts
+# -------------------------------
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+MANIFEST
+*.manifest
+*.spec
+
+# -------------------------------
+# 🧾 Logs and outputs
+# -------------------------------
+*.log
+logs/
+nohup.out
+
+# -------------------------------
+# 🧪 Jupyter & temporary files
+# -------------------------------
+.ipynb_checkpoints/
+*.nbconvert.ipynb
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+
+# -------------------------------
+# ⚙️ IDE & editor settings
+# -------------------------------
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# -------------------------------
+# 🧰 MLflow / Weights & Biases / TensorBoard
+# -------------------------------
+mlruns/
+wandb/
+tensorboard/
+tb_logs/
+lightning_logs/
+
+# -------------------------------
+# ⚡ Misc
+# -------------------------------
+*.bak
+*.orig
+*.out
+*.zip
+*.gz
+*.tar.gz
+*.7z
+*.rar
+
+*.DS_Store
