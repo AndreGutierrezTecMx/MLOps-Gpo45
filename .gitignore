@@ -83,6 +83,5 @@ lightning_logs/
 *.rar
 
 *.DS_Store
-/online_news_modified.csv
 *.key
 /online_news_clean.csv
