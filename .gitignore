@@ -85,3 +85,6 @@ lightning_logs/
 *.DS_Store
 *.key
 /online_news_clean.csv
+/models/*
+/predictions/*
+/artifacts/*
