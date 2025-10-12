@@ -88,3 +88,4 @@ lightning_logs/
 /models/*
 /predictions/*
 /artifacts/*
+*.dvc
