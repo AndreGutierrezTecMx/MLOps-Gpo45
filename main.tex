@@ -1,0 +1,108 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{tcolorbox}
+\usepackage{geometry}
+\geometry{margin=1.5cm}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{multicol}
+
+% Colores personalizados
+\definecolor{CanvasBlue}{RGB}{220,230,241}
+\definecolor{CanvasGray}{RGB}{240,240,240}
+\definecolor{CanvasHeader}{RGB}{60,90,150}
+
+% Estilo de títulos
+\titleformat{\section}{\Large\bfseries\color{CanvasHeader}}{}{0pt}{}
+\titleformat{\subsection}{\bfseries\color{CanvasHeader}}{}{0pt}{}
+
+\begin{document}
+
+\begin{center}
+    \LARGE \textbf{Machine Learning Canvas}\\[6pt]
+    \large \textbf{Proyecto: Predicción de popularidad de noticias online}
+\end{center}
+
+\vspace{0.5cm}
+
+% Estructura del Canvas en bloques
+\begin{tcolorbox}[colback=CanvasBlue!20,colframe=CanvasHeader,title=\textbf{Prediction Task}]
+El objetivo es predecir la popularidad de artículos periodísticos en línea antes de su publicación, utilizando como variable objetivo el número de veces que fueron compartidos en redes sociales (\texttt{shares}). 
+Se trata de un problema de \textbf{regresión supervisada}, donde se busca estimar un valor numérico continuo.
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=CanvasBlue!20,colframe=CanvasHeader,title=\textbf{Decisions}]
+El modelo permitirá a los equipos editoriales y de marketing tomar decisiones basadas en datos, como:
+\begin{itemize}
+    \item Destacar artículos con mayor probabilidad de viralizarse.
+    \item Redirigir esfuerzos publicitarios hacia contenidos más prometedores.
+    \item Priorizar temas o categorías con alto nivel de interacción.
+\end{itemize}
+Estas decisiones contribuirán a optimizar los recursos de publicación y mejorar el impacto del contenido.
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=CanvasBlue!20,colframe=CanvasHeader,title=\textbf{Value Proposition}]
+La implementación de modelos de Machine Learning ofrece a los medios digitales la posibilidad de anticipar el éxito de sus publicaciones, con beneficios como:
+\begin{itemize}
+    \item Asistencia automatizada en la selección y promoción de contenidos.
+    \item Reducción de tiempo y costos en campañas inefectivas.
+    \item Identificación de los factores que influyen en la viralidad de los artículos.
+\end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=CanvasGray,colframe=CanvasHeader,title=\textbf{Data Sources}]
+El proyecto emplea el dataset \textbf{Online News Popularity (UCI)}, que contiene 61 atributos, de los cuales 58 son predictivos, 2 no predictivos (\texttt{url}, \texttt{timedelta}) y 1 variable objetivo (\texttt{shares}). 
+
+Incluye dimensiones como estructura del texto, análisis de sentimiento, temática, temporalidad y rendimiento en redes sociales.
+
+Durante el preprocesamiento se eliminaron duplicados, se verificó la ausencia de valores nulos y se normalizaron variables booleanas.
+\end{tcolorbox}
+
+\columnbreak
+
+\begin{tcolorbox}[colback=CanvasGray,colframe=CanvasHeader,title=\textbf{Features}]
+El modelo considera distintas características del artículo agrupadas en cinco categorías principales:
+\begin{itemize}
+    \item \textbf{Texto y tono:} variables como \texttt{n\_tokens\_content} o \texttt{global\_subjectivity}, que reflejan la extensión y el sentimiento del contenido.
+    \item \textbf{Estructura y medios:} número de imágenes, vídeos y enlaces, asociados al atractivo visual.
+    \item \textbf{Temática:} canal de publicación (\texttt{data\_channel\_is\_tech}, \texttt{is\_world}, etc.), que influye en el interés del lector.
+    \item \textbf{Temporalidad:} día de la semana y variable \texttt{is\_weekend}, útiles para detectar patrones de publicación.
+    \item \textbf{Título y keywords:} polaridad y fuerza semántica del título, relacionadas con su potencial de viralidad.
+\end{itemize}
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=CanvasBlue!20,colframe=CanvasHeader,title=\textbf{Building Models}]
+El enfoque del proyecto es de \textbf{regresión supervisada}. Se entrenarán y compararán los siguientes modelos:
+\begin{itemize}
+    \item Elastic Net
+    \item MLPerceptron
+    \item Random Forest
+    \item HistGradientBoosting
+\end{itemize}
+\textbf{Evaluación:} las métricas utilizadas serán MSE, MAE y R\textsuperscript{2}.
+\end{tcolorbox}
+
+\begin{multicols}{2}
+\begin{tcolorbox}[colback=CanvasGray,colframe=CanvasHeader,title=\textbf{Making Predictions}]
+Las predicciones se realizarán en Google Colab usando el dataset limpio. 
+Se compararán los valores reales y estimados de \texttt{shares} para evaluar el rendimiento del modelo.
+\end{tcolorbox}
+
+\columnbreak
+
+\begin{tcolorbox}[colback=CanvasGray,colframe=CanvasHeader,title=\textbf{Impact Simulation}]
+Resultados esperados:
+\begin{itemize}
+    \item Determinar las características más influyentes.
+    \item Lograr un R\textsuperscript{2} superior a 0.6 y bajo MAE.
+    \item Evaluar el desempeño comparativo de los modelos.
+\end{itemize}
+\end{tcolorbox}
+\end{multicols}
+
+\begin{tcolorbox}[colback=CanvasBlue!20,colframe=CanvasHeader,title=\textbf{Monitoring}]
+Aunque aún no se cuenta con despliegue continuo, se usará DVC y GitHub para versionar datasets y modelos, registrar métricas y asegurar reproducibilidad.
+\end{tcolorbox}
+
+\end{document}
