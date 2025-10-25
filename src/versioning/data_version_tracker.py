@@ -1,14 +1,14 @@
 import hashlib
 import pandas as pd
 import json
-import logging
 import mlflow
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 from src.versioning.version_control import VersionControl
+from src.utils.logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class DataVersionTracker:
     """
