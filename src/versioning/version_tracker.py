@@ -10,7 +10,7 @@ from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
-class DataVersionTracker:
+class VersionTracker:
     """
     Clase para rastrear y versionar DataFrames con DVC automáticamente,
     y registrar sus hashes y metadatos en MLflow si hay un run activo.
