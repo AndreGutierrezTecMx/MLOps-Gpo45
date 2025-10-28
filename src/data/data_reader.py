@@ -1,14 +1,12 @@
-from src.utils.logger import get_logger
+from utils.logger import get_logger
 import pandas as pd
 logger = get_logger(__name__)
 
 class DataReader:
     """Class to read the data from a CSV file."""
     
-    def __init__(self, file_path: str):
+    def __init__(self, file_path: str = None, repo_url: str = None, revision: str = None):
         self.file_path = file_path
-
-    def __init__(self, repo_url:str, revision:str):
         self.repo_url = repo_url
         self.revision = revision
 

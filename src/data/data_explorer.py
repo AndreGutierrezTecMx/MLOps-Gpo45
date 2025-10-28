@@ -1,5 +1,8 @@
 import pandas as pd
 import numpy as np
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 class DataExplorer:
     """A class for exploring and analyzing datasets."""
@@ -17,14 +20,17 @@ class DataExplorer:
 
     def print_head(self, n:int=5):
         """Prints the first n rows of the DataFrame"""
+        logger.info(f"Mostrando las primeras {n} filas del DataFrame:")
         print(self.dataframe.head(n))
 
     def print_info(self):
         """Prints information about the DataFrame."""
+        logger.info("Mostrando información del DataFrame:")
         print(self.dataframe.info())
 
     def print_descriptive_statistics(self):
         """Returns descriptive statistics of the DataFrame."""
+        logger.info("Mostrando estadísticas descriptivas del DataFrame:")
         print(self.dataframe.describe())
 
     def missing_values_analysis(self):
@@ -36,15 +42,18 @@ class DataExplorer:
             'Porcentaje': null_percentages
         })
         null_info = null_info[null_info['Nulos'] > 0].sort_values('Nulos', ascending=False)
+        logger.info("Análisis de valores faltantes:")
         print(null_info)
 
     def duplicate_analysis(self):
         """Returns the number of duplicate rows in the DataFrame."""
         duplicates = self.dataframe.duplicated().sum()
+        logger.info(f"Número de filas duplicadas en el DataFrame: {duplicates}")
         print(f"\nFilas duplicadas: {duplicates}")
 
     def column_analysis(self):
         """Returns the number of columns and their data types in the DataFrame."""
+        logger.info("Análisis de columnas del DataFrame:")
         print("\nColumnas numéricas vs categóricas:")
         print(f"   Numéricas: {len(self.numeric_cols)}")
         print(f"   Categóricas/Object: {len(self.categorical_cols)}")
@@ -55,6 +64,7 @@ class DataExplorer:
 
     def unique_values_analysis(self):
         """Returns the number of unique values for each column in the DataFrame."""
+        logger.info("Análisis de valores únicos por columna:")
         if self.categorical_cols:
             for col in self.categorical_cols[:10]:  # Primeras 10 para no saturar
                 unique_count = self.dataframe[col].nunique()
@@ -67,6 +77,7 @@ class DataExplorer:
 
     def full_report(self):
         """Generates a full report of the DataFrame analysis."""
+        logger.info("Generando exploración completa del DataFrame:")
         self.print_head()
         self.print_info()
         self.print_descriptive_statistics()
