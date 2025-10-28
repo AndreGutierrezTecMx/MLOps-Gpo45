@@ -1,12 +1,11 @@
-from utils.logger import get_logger
+import utils.logger as logger
+from utils.dependency_checker import DependencyChecker
 from data.data_reader import DataReader
 from data.data_explorer import DataExplorer
 from data.data_cleaning import DataCleaning
 from constants.dvc_remote_type_enums import DvcRemoteType
 from versioning.version_tracker import VersionTracker
 from versioning.version_control import VersionControl
-
-logger = get_logger(__name__)
 
 class ModelPipeline:
     def __init__(
@@ -22,6 +21,9 @@ class ModelPipeline:
         dvc_remote_path: str = "../../dvc_remote",
         output_dir: str = "data/processed/",
         metadata_path: str = "registry/data_versions.json"):
+        logger.setup_logging()
+        deps = DependencyChecker("configs/dependencies.json")
+        deps.ensure_dependencies()
         self.file_path = file_path
         self.repo_url = repo_url
         self.revision = revision
