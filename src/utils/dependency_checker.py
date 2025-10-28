@@ -23,7 +23,7 @@ class DependencyChecker:
             result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
             logger.info(f"✅ {command}:\n{result.stdout.strip()}")
         except subprocess.CalledProcessError:
-            logger.info(f"⚠️ Error ejecutando: {command}")
+            logger.exception(f"⚠️ Error ejecutando: {command}")
 
     def ensure_dependencies(self):
         """Verifica e instala dependencias necesarias."""
