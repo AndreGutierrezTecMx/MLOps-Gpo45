@@ -5,8 +5,8 @@ import mlflow
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
-from src.versioning.version_control import VersionControl
-from src.utils.logger import get_logger
+from versioning.version_control import VersionControl
+from utils.logger import get_logger
 
 logger = get_logger(__name__)
 
