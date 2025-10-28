@@ -25,13 +25,15 @@ class DataExplorer:
 
     def print_info(self):
         """Prints information about the DataFrame."""
-        logger.info("Mostrando información del DataFrame:")
-        print(self.dataframe.info())
+        info = self.dataframe.info()
+        logger.info(f"Mostrando información del DataFrame:{info}")
+        print(info)
 
     def print_descriptive_statistics(self):
         """Returns descriptive statistics of the DataFrame."""
-        logger.info("Mostrando estadísticas descriptivas del DataFrame:")
-        print(self.dataframe.describe())
+        descriptive_stats = self.dataframe.describe()
+        logger.info(f"Mostrando estadísticas descriptivas del DataFrame:{descriptive_stats}")
+        print(descriptive_stats)
 
     def missing_values_analysis(self):
         """Returns a DataFrame with the count of missing values for each column."""
@@ -42,7 +44,7 @@ class DataExplorer:
             'Porcentaje': null_percentages
         })
         null_info = null_info[null_info['Nulos'] > 0].sort_values('Nulos', ascending=False)
-        logger.info("Análisis de valores faltantes:")
+        logger.info(f"Análisis de valores faltantes: {null_info}")
         print(null_info)
 
     def duplicate_analysis(self):
@@ -53,31 +55,36 @@ class DataExplorer:
 
     def column_analysis(self):
         """Returns the number of columns and their data types in the DataFrame."""
-        logger.info("Análisis de columnas del DataFrame:")
+        num_columns = len(self.numeric_cols)
+        cat_columns = len(self.categorical_cols)
         print("\nColumnas numéricas vs categóricas:")
-        print(f"   Numéricas: {len(self.numeric_cols)}")
+        logger.info(f"Columnas numéricas: {num_columns}, Columnas categóricas: {cat_columns}")
+        print(f"   Numéricas: {num_columns}")
         print(f"   Categóricas/Object: {len(self.categorical_cols)}")
         if self.categorical_cols:
+            logger.info(f"Columnas categóricas: {self.categorical_cols}")
             print("\nColumnas categóricas:")
             for col in self.categorical_cols:
                 print(f"   - {col}")
 
     def unique_values_analysis(self):
         """Returns the number of unique values for each column in the DataFrame."""
-        logger.info("Análisis de valores únicos por columna:")
         if self.categorical_cols:
             for col in self.categorical_cols[:10]:  # Primeras 10 para no saturar
                 unique_count = self.dataframe[col].nunique()
+                logger.info(f"Columna: {col}, Valores únicos: {unique_count}")
                 print(f"\n{col}:")
                 print(f"   Valores únicos: {unique_count}")
                 if unique_count < 20:
+                    logger.info(f"Valores en {col}: {self.dataframe[col].unique()}")
                     print(f"   Valores: {self.dataframe[col].unique()[:10]}")
         else:
+            logger.info("No hay columnas categóricas para analizar.")
             print("\n   ✓ No hay columnas categóricas para analizar")
 
     def full_report(self):
         """Generates a full report of the DataFrame analysis."""
-        logger.info("Generando exploración completa del DataFrame:")
+        logger.info("🔎 Generando exploración completa del DataFrame:")
         self.print_head()
         self.print_info()
         self.print_descriptive_statistics()
@@ -85,3 +92,4 @@ class DataExplorer:
         self.duplicate_analysis()
         self.column_analysis()
         self.unique_values_analysis()
+        logger.info("✅ Exploración completa del DataFrame finalizada.")
