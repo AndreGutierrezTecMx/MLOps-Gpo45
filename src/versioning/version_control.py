@@ -6,6 +6,9 @@ import time
 from utils.logger import get_logger
 from constants.dvc_remote_type_enums import DvcRemoteType
 from utils.secrets_manager import SecretsManager
+import os
+import sys
+import random
 
 logger = get_logger(__name__)
 
@@ -34,6 +37,8 @@ class VersionControl:
             dvc_remote_name (str): Nombre del remoto en DVC.
             secrets_manager (SecretsManager, optional): Para obtener credenciales seguras.
         """
+        self.project_root = Path(__file__).resolve().parents[3]
+        os.chdir(self.project_root)
         self.dvc_remote_type = dvc_remote_type
         self.dvc_remote_path = dvc_remote_path
         self.dvc_remote_name = dvc_remote_name
@@ -51,7 +56,17 @@ class VersionControl:
 
         # Configurar MLflow
         mlflow.set_tracking_uri(mlflow_tracking_uri)
-        mlflow.set_experiment(mlflow_experiment)
+        try:
+            mlflow.set_experiment(mlflow_experiment)
+            logger.info(f"✅ MLflow conectado a experimento: {mlflow_experiment}")
+        except Exception as e:
+            if "deleted experiment" in str(e).lower():
+                new_name = f"{mlflow_experiment}_{random.randint(1000, 9999)}"
+                logger.warning(f"⚠️ El experimento '{mlflow_experiment}' estaba eliminado. Creando nuevo: '{new_name}'")
+                mlflow.set_experiment(new_name)
+            else:
+                logger.exception(f"❌ Error configurando experimento MLflow: {e}")
+                raise
         logger.info(f"✅ MLflow conectado a: {mlflow_tracking_uri}")
 
 
@@ -61,7 +76,11 @@ class VersionControl:
         """
         try:
             # Verificar si el remoto ya existe
-            remotes = subprocess.run(["dvc", "remote", "list"], capture_output=True, text=True)
+            remotes = subprocess.run(
+                [sys.executable, "-m", "dvc", "remote", "list"],
+                capture_output=True,
+                text=True
+            )
             if self.dvc_remote_name in remotes.stdout:
                 logger.info(f"🔁 DVC remote '{self.dvc_remote_name}' ya configurado.")
                 return
@@ -71,16 +90,16 @@ class VersionControl:
                 path = Path(self.dvc_remote_path)
                 path.mkdir(parents=True, exist_ok=True)
                 subprocess.run(
-                    ["dvc", "remote", "add", "-d", self.dvc_remote_name, str(path), "-f"],
-                    check=True,
+                    [sys.executable, "-m", "dvc", "remote", "add", "-d", self.dvc_remote_name, str(path), "-f"],
+                    check=True
                 )
                 logger.info(f"📂 DVC remote local configurado en {path}")
 
             elif self.dvc_remote_type == DvcRemoteType.GDRIVE:
                 drive_folder = self.secrets_manager.get_secret("drive_folder")
                 subprocess.run(
-                    ["dvc", "remote", "add", "-d", self.dvc_remote_name, f"gdrive://{drive_folder}", "-f"],
-                    check=True,
+                    [sys.executable, "-m", "dvc", "remote", "add", "-d", self.dvc_remote_name, f"gdrive://{drive_folder}", "-f"],
+                    check=True
                 )
                 logger.info("🌐 DVC remote Google Drive configurado")
 
@@ -90,11 +109,11 @@ class VersionControl:
                     client_secret = self.secrets_manager.get_secret("client_id")
                     if client_id and client_secret:
                         subprocess.run(
-                            ["dvc", "remote", "modify", "--local", self.dvc_remote_name, "gdrive_client_id", client_id],
-                            check=True,
+                            [sys.executable, "-m", "dvc", "remote", "modify", "--local", self.dvc_remote_name, "gdrive_client_id", client_id],
+                            check=True
                         )
                         subprocess.run(
-                            ["dvc", "remote", "modify", "--local", self.dvc_remote_name, "gdrive_client_secret", client_secret],
+                            [sys.executable, "-m", "dvc", "remote", "modify", "--local", self.dvc_remote_name, "gdrive_client_secret", client_secret],
                             check=True,
                         )
                         logger.info("🔑 Credenciales de Google Drive configuradas desde SecretsManager")
@@ -102,7 +121,7 @@ class VersionControl:
             elif self.dvc_remote_type == DvcRemoteType.AZURE:
                 container_url = self.secrets_manager.get_secret("container_url")
                 subprocess.run(
-                    ["dvc", "remote", "add", "-d", self.dvc_remote_name, f"azure://{container_url}", "-f"],
+                    [sys.executable, "-m", "dvc", "remote", "add", "-d", self.dvc_remote_name, f"azure://{container_url}", "-f"],
                     check=True,
                 )
                 logger.info("☁️ DVC remote Azure configurado")
@@ -112,11 +131,11 @@ class VersionControl:
                     account_key = self.secrets_manager.get_secret("account_key")
                     if account_name and account_key:
                         subprocess.run(
-                            ["dvc", "remote", "modify", "--local", self.dvc_remote_name, "account_name", account_name],
+                            [sys.executable, "-m", "dvc", "remote", "modify", "--local", self.dvc_remote_name, "account_name", account_name],
                             check=True,
                         )
                         subprocess.run(
-                            ["dvc", "remote", "modify", "--local", self.dvc_remote_name, "account_key", account_key],
+                            [sys.executable, "-m", "dvc", "remote", "modify", "--local", self.dvc_remote_name, "account_key", account_key],
                             check=True,
                         )
                         logger.info("🔑 Credenciales de Azure configuradas desde SecretsManager")
@@ -124,7 +143,7 @@ class VersionControl:
             elif self.dvc_remote_type == DvcRemoteType.S3:
                 bucket_url = self.secrets_manager.get_secret("bucket_url")
                 subprocess.run(
-                    ["dvc", "remote", "add", "-d", self.dvc_remote_name, f"s3://{bucket_url}", "-f"],
+                    [sys.executable, "-m", "dvc", "remote", "add", "-d", self.dvc_remote_name, f"s3://{bucket_url}", "-f"],
                     check=True,
                 )
                 logger.info("🪣 DVC remote AWS S3 configurado")
@@ -134,11 +153,11 @@ class VersionControl:
                     secret_key = self.secrets_manager.get_secret("aws_key")
                     if access_key and secret_key:
                         subprocess.run(
-                            ["dvc", "remote", "modify", "--local", self.dvc_remote_name, "access_key_id", access_key],
+                            [sys.executable, "-m", "dvc", "remote", "modify", "--local", self.dvc_remote_name, "access_key_id", access_key],
                             check=True,
                         )
                         subprocess.run(
-                            ["dvc", "remote", "modify", "--local", self.dvc_remote_name, "secret_access_key", secret_key],
+                            [sys.executable, "-m", "dvc", "remote", "modify", "--local", self.dvc_remote_name, "secret_access_key", secret_key],
                             check=True,
                         )
                         logger.info("🔑 Credenciales de AWS configuradas desde SecretsManager")
@@ -154,32 +173,59 @@ class VersionControl:
         """
         Inicializa DVC si el repositorio aún no tiene la carpeta `.dvc/`.
         Si Git no está inicializado, también lo inicializa.
-        Equivalente a: `[ -d .dvc ] || dvc init -q`
         """
-        dvc_dir = Path(".dvc")
+        logger.debug(f"📂 Directorio raíz del proyecto: {self.project_root}")
 
-        # Si DVC ya está inicializado, no hacemos nada
+        dvc_dir = self.project_root / ".dvc"
+
+        # Si ya está inicializado, salir
         if dvc_dir.exists() and dvc_dir.is_dir():
-            logger.debug("📁 DVC ya inicializado.")
+            logger.info("📁 DVC ya está inicializado.")
             return
 
-        # Verificar si Git está inicializado
-        if not Path(".git").exists():
-            logger.warning("⚠️ No se detectó un repositorio Git. Inicializando Git primero...")
+        # Asegurar que Git existe
+        git_dir = self.project_root / ".git"
+        if not git_dir.exists():
+            logger.warning("⚠️ No se detectó repositorio Git. Inicializando Git...")
             try:
-                subprocess.run(["git", "init"], check=True)
-                logger.info("🆕 Repositorio Git inicializado correctamente.")
+                subprocess.run(["git", "init"], check=True, capture_output=True, text=True)
+                logger.info("🆕 Git inicializado correctamente.")
             except subprocess.CalledProcessError as e:
-                logger.exception(f"❌ Error al inicializar Git: {e}")
-                raise
+                logger.exception(f"❌ Error al inicializar Git: {e.stderr or e.stdout}")
+                raise RuntimeError("No se pudo inicializar Git.") from e
 
-        # Inicializar DVC
+        # Confirmar DVC instalado
         try:
-            result = subprocess.run(["dvc", "init", "-q"], check=True, capture_output=True, text=True)
-            logger.info("🆕 DVC inicializado correctamente en este proyecto.")
-        except subprocess.CalledProcessError as e:
-            logger.error(f"❌ Error al inicializar DVC: {e.stderr or e.stdout}")
-            raise RuntimeError("Falló la inicialización de DVC. Asegúrate de tener permisos y DVC instalado.") from e
+            result = subprocess.run(
+                [sys.executable, "-m", "dvc", "--version"],
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            logger.info(f"✅ DVC detectado correctamente: {result.stdout.strip()}")
+        except Exception as e:
+            logger.error("❌ No se pudo verificar DVC. ¿Está correctamente instalado?")
+            raise
+
+        # Intentar inicializar DVC
+        logger.debug("⚙️ Ejecutando `dvc init`...")
+        try:
+            result = subprocess.run(
+                [sys.executable, "-m", "dvc", "init", "-q"],
+                capture_output=True,
+                text=True,
+            )
+            if result.returncode == 0:
+                logger.info("🆕 DVC inicializado correctamente.")
+            elif "already initialized" in (result.stderr or result.stdout).lower():
+                logger.warning("⚠️ DVC ya estaba inicializado. Continuando.")
+            else:
+                logger.error(f"❌ Error en `dvc init`: {result.stderr or result.stdout}")
+                raise subprocess.CalledProcessError(result.returncode, result.args, result.stdout, result.stderr)
+        except Exception as e:
+            logger.exception(f"❌ Falló la inicialización de DVC: {e}")
+            raise
+
 
     def _init_mlflow_ui(self):
         """
@@ -209,7 +255,7 @@ class VersionControl:
         # Iniciar MLflow UI
         try:
             subprocess.Popen(
-                ["mlflow", "ui", "--port", str(port)],
+                [sys.executable, "-m", "mlflow", "ui", "--port", str(port)],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL
             )
