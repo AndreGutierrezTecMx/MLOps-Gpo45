@@ -1,20 +1,40 @@
 """
 Preprocessor
 -----------
-Clase que implementa el flujo de preprocesamiento del dataset:
+Clase que implementa el flujo de **preprocesamiento** del dataset y deja listo
+el **pipeline de Scikit-Learn** (ColumnTransformer) para usar en modelado.
 
-1. Deriva nuevas variables a partir de 'url' (article_year, article_month, article_day, article_title).
-2. Normaliza las columnas booleanas a formato 0/1.
-3. Separa las variables predictoras (X) y el target (y), aplicando train/test split.
-4. Construye un ColumnTransformer con transformaciones:
-   - PowerTransformer (Yeo-Johnson) y MinMaxScaler para columnas numéricas transformables.
-   - Passthrough para columnas binarias o constantes.
+Automatiza:
+1) Feature engineering a partir de 'url' (article_year, article_month, article_day, article_title).
+2) Normalización de columnas booleanas a 0/1.
+3) Separación en X/y y **train/test split** reproducible.
+4) Construcción de un **ColumnTransformer**:
+   - PowerTransformer (Yeo-Johnson) + MinMaxScaler para numéricas transformables.
+   - Passthrough para numéricas binarias/constantes.
    - Passthrough para columnas booleanas.
 
-Uso:
+Reproducibilidad:
+- El split usa `random_state` fijo (por defecto 42).
+- Las transformaciones no dependen del orden de las columnas.
+
+Entradas esperadas:
+- `df_clean`: DataFrame limpio (idealmente proveniente de una etapa de limpieza previa).
+- Debe existir el target (por defecto: 'shares') y la columna 'url'.
+
+Salidas:
+- `get_splits()` → (X_train, X_test, y_train, y_test)
+- `get_preprocess()` → ColumnTransformer listo para incrustar en un Pipeline
+- `get_feature_groups()` → columnas usadas por cada sub-transformación (trazabilidad)
+
+Uso mínimo:
     pre = Preprocessor(df_clean=df, target_col="shares").run()
     X_train, X_test, y_train, y_test = pre.get_splits()
     preprocess = pre.get_preprocess()
+
+Notas:
+- Si no hay fecha en la URL, se imputan valores por **default** o por **moda**.
+- Las columnas especificadas en `non_predictors` se excluyen de X.
+- Los logs registran cada operación para auditoría.
 """
 
 from typing import Tuple, List, Dict
@@ -30,6 +50,21 @@ logger = get_logger(__name__)
 
 
 class Preprocessor:
+    """
+    Encapsula el flujo de preprocesamiento para mantenerlo **claro, reusable y trazable**.
+
+    Args:
+        df_clean (pd.DataFrame): DataFrame limpio/origen con al menos 'url' y el target.
+        target_col (str): Nombre de la columna objetivo (default: "shares").
+        boolean_cols (List[str] | None): Lista de columnas booleanas conocidas (0/1).
+        non_predictors (List[str] | None): Columnas a excluir explícitamente de X.
+        test_size (float): Proporción para el conjunto de prueba (default: 0.2).
+        random_state (int): Semilla para reproducibilidad (default: 42).
+
+    Raises:
+        ValueError: Si faltan columnas críticas (p.ej. 'url' o el target).
+    """
+
     def __init__(
         self,
         df_clean: pd.DataFrame,
@@ -39,7 +74,7 @@ class Preprocessor:
         test_size: float = 0.2,
         random_state: int = 42,
     ):
-        # Se crea una copia del DataFrame para evitar modificar el original
+        # Copia defensiva para no mutar el DataFrame original
         self.df_clean = df_clean.copy()
         self.target_col = target_col
         self.test_size = test_size
@@ -57,7 +92,7 @@ class Preprocessor:
         # Columnas que no deben incluirse en el modelado (no predictoras)
         self.non_predictors = non_predictors or ["url", "article_title", "url_cleaned", "mixed_type_col"]
 
-        # Inicialización de variables de salida
+        # Placeholders de salida/estado interno
         self.preprocess: ColumnTransformer = None
         self.bool_cols_present: List[str] = []
         self.transformable_num: List[str] = []
@@ -68,11 +103,11 @@ class Preprocessor:
     def run(self) -> "Preprocessor":
         """
         Ejecuta el flujo completo de preprocesamiento:
-        1. Derivación de variables desde la URL.
-        2. Normalización de booleanas.
-        3. Creación de X, y.
-        4. División train/test.
-        5. Construcción del ColumnTransformer.
+          (a) Derivación de variables desde la URL.
+          (b) Normalización de booleanas.
+          (c) Construcción de X/y.
+          (d) Train/Test split reproducible.
+          (e) ColumnTransformer final.
         """
         logger.info("⏳ [Preprocessor] Iniciando preprocesamiento…")
         self._derive_from_url()
@@ -84,19 +119,19 @@ class Preprocessor:
         return self
 
     def get_splits(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
-        """Devuelve los conjuntos de entrenamiento y prueba (X_train, X_test, y_train, y_test)."""
+        """Devuelve los conjuntos de entrenamiento y prueba: (X_train, X_test, y_train, y_test)."""
         return self.X_train, self.X_test, self.y_train, self.y_test
 
     def get_preprocess(self) -> ColumnTransformer:
-        """Devuelve el ColumnTransformer generado."""
+        """Devuelve el ColumnTransformer construido para integrarlo a un Pipeline de modelado."""
         return self.preprocess
 
     def get_feature_groups(self) -> Dict[str, List[str]]:
         """
-        Devuelve los grupos de columnas detectadas durante el preprocesamiento:
+        Devuelve los grupos de columnas detectadas (útil para inspección y trazabilidad):
             - boolean_present: columnas booleanas incluidas.
-            - numeric_transform: columnas numéricas transformadas.
-            - numeric_passthrough: columnas numéricas sin transformación.
+            - numeric_transform: numéricas con Yeo-Johnson + MinMaxScaler.
+            - numeric_passthrough: numéricas que pasan sin transformación.
         """
         return {
             "boolean_present": self.bool_cols_present,
@@ -108,11 +143,18 @@ class Preprocessor:
     @staticmethod
     def _apply_raw_features(df: pd.DataFrame) -> pd.DataFrame:
         """
-        Deriva columnas desde 'url' y genera variables temporales:
-        - Limpieza del texto de URL.
-        - Extracción de fecha (año, mes, día).
-        - Creación de una variable de título a partir de la URL.
-        Aplica imputación de valores faltantes mediante defaults o moda.
+        Deriva columnas desde 'url' y genera variables temporales y de título.
+
+        Operaciones:
+            - Limpieza de 'url' → 'url_cleaned'
+            - Extracción de fecha con regex → article_year/month/day
+            - Imputación:
+                * Si toda la columna es NaN, se fija un default robusto.
+                * Si hay NaNs parciales, se imputan con la **moda**.
+            - Derivación de 'article_title' desde el penúltimo segmento de la URL.
+
+        Returns:
+            pd.DataFrame: DataFrame con columnas derivadas añadidas.
         """
         out = df.copy()
         if "url" not in out.columns:
@@ -122,7 +164,7 @@ class Preprocessor:
         out["url_cleaned"] = out["url"].astype(str).str.strip()
         logger.info("✔️ url_cleaned creada")
 
-        # Extracción de componentes de fecha
+        # Extracción de componentes de fecha con patrón YYYY/MM/DD
         date_match = out["url_cleaned"].str.extract(r"/(\d{4})/(\d{2})/(\d{2})/")
         out["article_year"] = pd.to_numeric(date_match[0], errors="coerce")
         out["article_month"] = pd.to_numeric(date_match[1], errors="coerce")
@@ -139,7 +181,7 @@ class Preprocessor:
                 out[c].fillna(moda, inplace=True)
                 logger.info(f"ℹ️ '{c}': {n_nan} NaN → imputados con moda {moda}")
 
-        # Derivación del título del artículo desde la URL
+        # Derivación del título del artículo desde la URL (penúltimo segmento)
         out["article_title"] = out["url_cleaned"].str.split("/").str[-2]
         out["article_title"] = out["article_title"].str.replace("-", " ", regex=False).str.title()
         logger.info("✔️ article_title creado/normalizado")
@@ -147,7 +189,7 @@ class Preprocessor:
         return out
 
     def _derive_from_url(self) -> None:
-        """Identifica las nuevas columnas derivadas tras procesar la URL."""
+        """Ejecuta el feature engineering a partir de 'url' y registra las nuevas columnas creadas."""
         prev = set(self.df_clean.columns)
         self.df_clean = self._apply_raw_features(self.df_clean)
         new_cols = sorted(list(set(self.df_clean.columns) - prev))
@@ -156,7 +198,7 @@ class Preprocessor:
     def _normalize_booleans(self) -> None:
         """
         Normaliza todas las columnas booleanas detectadas:
-        convierte valores diferentes de cero en 1 y los demás en 0.
+        cualquier valor > 0 se mapea a 1; el resto a 0 (tipo entero).
         """
         touched = []
         for c in self.boolean_cols:
@@ -170,8 +212,10 @@ class Preprocessor:
 
     def _build_xy(self) -> Tuple[pd.DataFrame, pd.Series]:
         """
-        Separa las variables predictoras (X) y la variable objetivo (y).
-        Elimina del conjunto de features las columnas no predictoras definidas.
+        Construye X (features) e y (target) y excluye las columnas listadas en `non_predictors`.
+
+        Raises:
+            ValueError: Si `target_col` no existe en el DataFrame.
         """
         if self.target_col not in self.df_clean.columns:
             raise ValueError(f"No se encontró el target '{self.target_col}'.")
@@ -183,7 +227,9 @@ class Preprocessor:
         return X, y
 
     def _split_train_test(self, X: pd.DataFrame, y: pd.Series) -> None:
-        """Divide los datos en entrenamiento y prueba (por defecto 80/20)."""
+        """
+        Aplica el **train/test split** reproducible (por defecto 80/20, random_state fijo).
+        """
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
             X, y, test_size=self.test_size, random_state=self.random_state, shuffle=True
         )
@@ -191,10 +237,10 @@ class Preprocessor:
 
     def _build_column_transformer(self) -> None:
         """
-        Construye el ColumnTransformer final para las transformaciones del modelo.
-        - Aplica Yeo-Johnson + MinMaxScaler a columnas numéricas transformables.
-        - Mantiene sin cambios las columnas numéricas binarias o constantes.
-        - Mantiene sin cambios las columnas booleanas.
+        Construye el **ColumnTransformer** final:
+          - `num`: Yeo-Johnson + MinMaxScaler para numéricas con variación real (más de 2 valores y std>0).
+          - `num_pt`: passthrough para numéricas binarias/constantes (evita transformar ruido).
+          - `bool`: passthrough para booleanas 0/1.
         """
         # Identificación de columnas booleanas presentes en X
         self.bool_cols_present = [c for c in self.boolean_cols if c in self.X_train.columns]
@@ -212,23 +258,24 @@ class Preprocessor:
             else:
                 self.passthrough_num.append(c)
 
-        # Pipeline para transformar columnas numéricas
+        # Pipeline para transformar columnas numéricas (robusto a negativos via Yeo-Johnson)
         num_pipe = Pipeline([
             ("yeojohnson", PowerTransformer(method="yeo-johnson", standardize=False)),
             ("minmax", MinMaxScaler())
         ])
 
-        # Definición del ColumnTransformer global
+        # Definición del ColumnTransformer global (listo para integrarse en un Pipeline de modelado)
         self.preprocess = ColumnTransformer(
             transformers=[
-                ("num", num_pipe, self.transformable_num),
-                ("num_pt", "passthrough", self.passthrough_num),
-                ("bool", "passthrough", self.bool_cols_present),
+                ("num",   num_pipe,              self.transformable_num),
+                ("num_pt","passthrough",         self.passthrough_num),
+                ("bool",  "passthrough",         self.bool_cols_present),
             ],
-            remainder="drop",  # se eliminan columnas no especificadas
+            remainder="drop",  # elimina cualquier columna no listada arriba
         )
 
         logger.info(
             f"🧱 ColumnTransformer → num_transform={self.transformable_num} | "
             f"num_passthrough={self.passthrough_num} | bool={self.bool_cols_present}"
         )
+
