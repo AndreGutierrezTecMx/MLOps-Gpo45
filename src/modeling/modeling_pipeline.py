@@ -8,7 +8,8 @@ from versioning.version_tracker import VersionTracker
 from versioning.version_control import VersionControl
 from data.data_analysis import DataAnalysis
 from utils.logger import get_logger
-
+from data.data_preprocessing import Preprocessor
+from modeling.data_modeling import ModelTrainer
 logger = get_logger(__name__)
 
 class ModelPipeline:
