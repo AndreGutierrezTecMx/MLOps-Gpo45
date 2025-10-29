@@ -63,9 +63,10 @@ class ModelPipeline:
         """Plot the data analysis using DataAnalysis."""
         self.dc = DataAnalysis(self.de.dataframe)
         # TODO: Implement cleaning steps here
-        self.dc.plot_bar_charts()
-
         self.logger.info("Impresion de graficas para el analisis de datos completada.")
+        self.dc.plot_bar_charts()
+        self.logger.info("Impresion de top 20 artículos más compartidos.")
+        self.dc.print_top_shared_articles(top_n=20)
         return self
     
     def preprocess_data(self):
@@ -77,6 +78,11 @@ class ModelPipeline:
     def modeling_data(self):
         """Placeholder for modeling steps."""
         # TODO: Implement modeling steps here
+        # Obtener hiperparametros 
+        # Obtener metricas a utilizar
+        # Entrenar modelo de RandomForest
+        # Save model RandomForest
+        
         # TODO: Hacer la comparación de modelos y guardar el mejor modelo
         self.logger.info("Modelado de datos completado.")
         return self

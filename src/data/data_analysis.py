@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+from constants.column_names import ColumnNames
 
 class DataAnalysis:
     """A class for get visualizations from cleaned dataframe."""
@@ -10,45 +11,45 @@ class DataAnalysis:
     
     # Funciones para obtener columnas específicas a través de columnas binarias y conteo de artículos y compartidos por canal
     def get_channel_counts_and_shares(self):
-        channel_cols = [col for col in self.df.columns if col.startswith('data_channel_is_')]
+        channel_cols = [col for col in self.df.columns if col.startswith(ColumnNames.DATA_CHANNEL_IS.value)]
 
         # Conteo de artículos por canal
         counts = self.df[channel_cols].sum()
         no_channel_flag = (self.df[channel_cols].sum(axis=1) == 0).astype(int)
-        counts['no_channel'] = no_channel_flag.sum()
+        counts[ColumnNames.NO_CHANNEL.value] = no_channel_flag.sum()
 
         # Total de compartidos por canal
-        shares = self.df[channel_cols].multiply(self.df['shares'], axis=0).sum()
-        shares['no_channel'] = self.df[no_channel_flag == 1]['shares'].sum()
+        shares = self.df[channel_cols].multiply(self.df[ColumnNames.SHARES.value], axis=0).sum()
+        shares[ColumnNames.NO_CHANNEL.value] = self.df[no_channel_flag == 1][ColumnNames.SHARES.value].sum()
 
         # Combinar en un solo DataFrame
         combined = pd.DataFrame({
-            'Channel': list(counts.index),
-            'Count': counts.values,
-            'Total Shares': shares.values
+            ColumnNames.CHANNEL.value: list(counts.index),
+            ColumnNames.COUNT.value: counts.values,
+            ColumnNames.TOTAL_SHARES.value: shares.values
         })
 
-        return combined.sort_values(by='Count', ascending=False)
+        return combined.sort_values(by=ColumnNames.COUNT.value, ascending=False)
 
     # Función para obtener conteo de artículos por día de la semana
     def get_weekday_counts(self):
-        weekday_cols = [col for col in self.df.columns if col.startswith('weekday_is_')]
+        weekday_cols = [col for col in self.df.columns if col.startswith(ColumnNames.WEEKDAY_IS.value)]
         counts = self.df[weekday_cols].sum()
         counts.index = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
         self.df_out = counts.reset_index()
-        self.df_out.columns = ['Day', 'Count']
+        self.df_out.columns = [ColumnNames.DAY.value, ColumnNames.COUNT.value]
         return self.df_out
     
     # Función para preparar dataframes resumen
     def prepare_summary_dataframes(self):
         self.channel_df = self.get_channel_counts_and_shares(self.df)
         self.weekday_df = self.get_weekday_counts(self.df)
-        self.channel_shares_df = self.channel_df[['Channel', 'Total Shares']].copy()
+        self.channel_shares_df = self.channel_df[[ColumnNames.CHANNEL.value, ColumnNames.TOTAL_SHARES.value]].copy()
 
     # Función para obtener los artículos más compartidos
-    def get_top_shared_articles(self, top_n=20):
-        self.top_articles_df = self.df.sort_values(by='shares', ascending=False).head(top_n)
-        return self.top_articles_df[['url', 'shares']]
+    def print_top_shared_articles(self, top_n=20):
+        self.top_articles_df = self.df.sort_values(by=ColumnNames.SHARES.value, ascending=False).head(top_n)
+        print(self.top_articles_df[[ColumnNames.URL.value, ColumnNames.SHARES.value]])
     
     # Funciones de visualización
 
@@ -85,7 +86,7 @@ class DataAnalysis:
         plt.show()
 
     # Diagrama de dispersión genérico
-    def scatter_plot(self, x_col, y_col='shares', title=None, xlabel=None, ylabel='Compartidos'):
+    def scatter_plot(self, x_col, y_col=ColumnNames.SHARES.value, title=None, xlabel=None, ylabel=ColumnNames.COMPARTIDOS.value):
         plt.figure(figsize=(10, 6))
         plt.scatter(self.df[x_col], self.df[y_col], alpha=0.5)
         plt.title(title or f'Dispersión de {x_col} vs. {y_col}')
@@ -95,7 +96,7 @@ class DataAnalysis:
         plt.show()
 
     # Histograma genérico
-    def histogram(self, column, bins=50, kde=True, title=None, xlabel=None, ylabel='Frecuencia'):
+    def histogram(self, column, bins=50, kde=True, title=None, xlabel=None, ylabel=ColumnNames.FRECUENCIA.value):
         plt.figure(figsize=(10, 6))
         sns.histplot(self.df[column], bins=bins, kde=kde)
         plt.title(title or f'Distribución de {column}')
@@ -106,18 +107,15 @@ class DataAnalysis:
 
     def plot_bar_charts(self):
         self.prepare_summary_dataframes()
-        self.plot_bar_chart(self.channel_df[['Channel', 'Count']], 'Channel', 'Count', 'Artículos por canal')
-        self.plot_bar_chart(self.channel_shares_df, 'Channel', 'Total Shares', 'Compartidos por canal')
-        self.plot_bar_chart(self.weekday_df, 'Day', 'Count', 'Artículos por día de la semana')
+        self.plot_bar_chart(self.channel_df[[ColumnNames.CHANNEL.value, ColumnNames.COUNT.value]], ColumnNames.CHANNEL.value, ColumnNames.COUNT.value, 'Artículos por canal')
+        self.plot_bar_chart(self.channel_shares_df, ColumnNames.CHANNEL.value, ColumnNames.TOTAL_SHARES.value, 'Compartidos por canal')
+        self.plot_bar_chart(self.weekday_df, ColumnNames.DAY.value, ColumnNames.COUNT.value, 'Artículos por día de la semana')
+
+
 
     # Uso de la clase DataAnalysis
 
-    # Artículos más compartidos
-    top_articles = DataAnalysis.get_top_shared_articles(top_n=20)
-    print(top_articles)
-                    
-    # Diagramas de dispersión
-
+    # TODO: Asegurate de usar ColumnNames.TU_CONSTANTE.value para referirte a las columnas            
     #Imágenenes vs Compartidos
     DataAnalysis.scatter_plot('num_imgs', title='Dispersión de Imágenes vs. Compartidos', xlabel='Número de Imágenes')
 
