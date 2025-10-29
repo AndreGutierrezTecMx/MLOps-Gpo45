@@ -51,17 +51,18 @@ class ModelPipeline:
     def clean_data(self):
         """Performs data cleaning using DataCleaning."""
         self.dc = DataCleaning(self.de.dataframe)
+        # TODO: Implement cleaning steps here
         self.logger.info("Limpieza de datos completada.")
         return self
     
     def preprocess_data(self):
         """Placeholder for data preprocessing steps."""
-        # Implement preprocessing steps here
+        # TODO: Implement preprocessing steps here
         self.logger.info("Preprocesamiento de datos completado.")
         return self
     
     def modeling_data(self):
         """Placeholder for modeling steps."""
-        # Implement modeling steps here
+        # TODO: Implement modeling steps here
         self.logger.info("Modelado de datos completado.")
         return self

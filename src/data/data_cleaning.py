@@ -5,17 +5,12 @@ Sigue la estructura Cookiecutter Data Science / MLflow Project.
 
 import pandas as pd
 import numpy as np
-import logging
+
 from typing import Dict, Tuple, Optional, Union
 from pathlib import Path
+from utils.logger import get_logger
 
-# Configurar logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 class DataCleaning:
     """Una clase para limpiar y preprocesar dataframes desde datos crudos."""
@@ -32,38 +27,6 @@ class DataCleaning:
         self.df = dataframe
         self.df_clean = None
         self.cleaning_report = {}
-        
-    def analyze_nulls(self) -> pd.DataFrame:
-        """
-        Analiza valores nulos en el dataframe.
-        
-        Retorna
-        -------
-        pd.DataFrame
-            DataFrame con conteo de nulos y porcentajes
-        """
-        logger.info("Analizando valores nulos en el dataset...")
-        null_counts = self.df.isnull().sum()
-        null_percentages = (self.df.isnull().sum() / len(self.df)) * 100
-        
-        null_info = pd.DataFrame({
-            'nulos': null_counts,
-            'porcentaje': null_percentages
-        })
-        
-        # Filtrar solo columnas con nulos y ordenar
-        null_info = null_info[null_info['nulos'] > 0].sort_values(
-            'nulos', ascending=False
-        )
-        
-        self.cleaning_report['analisis_nulos'] = {
-            'total_nulos': null_counts.sum(),
-            'columnas_con_nulos': len(null_info),
-            'info_nulos': null_info.to_dict()
-        }
-        
-        logger.info(f"Se encontraron {null_counts.sum()} valores nulos en {len(null_info)} columnas")
-        return null_info
     
     def convert_data_types(self, exclude_columns: Optional[list] = None) -> pd.DataFrame:
         """
@@ -390,7 +353,7 @@ class DataCleaning:
         logger.info("Ejecutando pipeline de limpieza estándar...")
         
         # 1. Analizar nulos
-        self.analyze_nulls()
+        # Metodo eliminado. Analizar valores nulos corresponde al data explorer
         
         # 2. Convertir tipos de datos
         self.convert_data_types()
