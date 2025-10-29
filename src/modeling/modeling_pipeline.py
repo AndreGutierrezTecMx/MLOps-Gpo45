@@ -6,6 +6,10 @@ from data.data_cleaning import DataCleaning
 from constants.dvc_remote_type_enums import DvcRemoteType
 from versioning.version_tracker import VersionTracker
 from versioning.version_control import VersionControl
+from data.data_analysis import DataAnalysis
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 class ModelPipeline:
     def __init__(
@@ -55,6 +59,15 @@ class ModelPipeline:
         self.logger.info("Limpieza de datos completada.")
         return self
     
+    def plot_analysis(self):
+        """Plot the data analysis using DataAnalysis."""
+        self.dc = DataAnalysis(self.de.dataframe)
+        # TODO: Implement cleaning steps here
+        self.dc.plot_bar_charts()
+
+        self.logger.info("Impresion de graficas para el analisis de datos completada.")
+        return self
+    
     def preprocess_data(self):
         """Placeholder for data preprocessing steps."""
         # TODO: Implement preprocessing steps here
@@ -64,5 +77,6 @@ class ModelPipeline:
     def modeling_data(self):
         """Placeholder for modeling steps."""
         # TODO: Implement modeling steps here
+        # TODO: Hacer la comparación de modelos y guardar el mejor modelo
         self.logger.info("Modelado de datos completado.")
         return self

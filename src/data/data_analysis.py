@@ -7,23 +7,19 @@ class DataAnalysis:
     """A class for get visualizations from cleaned dataframe."""
     def __init__(self, dataframe):
         self.df = dataframe
-
-    def preview(self, n=5):
-        """Muestra las primeras n filas del DataFrame."""
-        return self.df.head(n)
     
     # Funciones para obtener columnas específicas a través de columnas binarias y conteo de artículos y compartidos por canal
-    def get_channel_counts_and_shares(df):
-        channel_cols = [col for col in df.columns if col.startswith('data_channel_is_')]
+    def get_channel_counts_and_shares(self):
+        channel_cols = [col for col in self.df.columns if col.startswith('data_channel_is_')]
 
         # Conteo de artículos por canal
-        counts = df[channel_cols].sum()
-        no_channel_flag = (df[channel_cols].sum(axis=1) == 0).astype(int)
+        counts = self.df[channel_cols].sum()
+        no_channel_flag = (self.df[channel_cols].sum(axis=1) == 0).astype(int)
         counts['no_channel'] = no_channel_flag.sum()
 
         # Total de compartidos por canal
-        shares = df[channel_cols].multiply(df['shares'], axis=0).sum()
-        shares['no_channel'] = df[no_channel_flag == 1]['shares'].sum()
+        shares = self.df[channel_cols].multiply(self.df['shares'], axis=0).sum()
+        shares['no_channel'] = self.df[no_channel_flag == 1]['shares'].sum()
 
         # Combinar en un solo DataFrame
         combined = pd.DataFrame({
@@ -35,20 +31,19 @@ class DataAnalysis:
         return combined.sort_values(by='Count', ascending=False)
 
     # Función para obtener conteo de artículos por día de la semana
-    def get_weekday_counts(df):
-        weekday_cols = [col for col in df.columns if col.startswith('weekday_is_')]
-        counts = df[weekday_cols].sum()
+    def get_weekday_counts(self):
+        weekday_cols = [col for col in self.df.columns if col.startswith('weekday_is_')]
+        counts = self.df[weekday_cols].sum()
         counts.index = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        df_out = counts.reset_index()
-        df_out.columns = ['Day', 'Count']
-        return df_out
+        self.df_out = counts.reset_index()
+        self.df_out.columns = ['Day', 'Count']
+        return self.df_out
     
     # Función para preparar dataframes resumen
-    def prepare_summary_dataframes(df):
-        channel_df = get_channel_counts_and_shares(df)
-        weekday_df = get_weekday_counts(df)
-        channel_shares_df = channel_df[['Channel', 'Total Shares']].copy()
-        return channel_df[['Channel', 'Count']], weekday_df, channel_shares_df
+    def prepare_summary_dataframes(self):
+        self.channel_df = self.get_channel_counts_and_shares(self.df)
+        self.weekday_df = self.get_weekday_counts(self.df)
+        self.channel_shares_df = self.channel_df[['Channel', 'Total Shares']].copy()
 
     # Función para obtener los artículos más compartidos
     def get_top_shared_articles(self, top_n=20):
@@ -59,7 +54,7 @@ class DataAnalysis:
 
     # Gráfico de barras genérico
     def plot_bar_chart(
-        df,
+        self,
         x_col,
         y_col,
         title,
@@ -70,7 +65,7 @@ class DataAnalysis:
         palette='viridis'
     ):
         plt.figure(figsize=(10, 6))
-        ax = sns.barplot(x=x_col, y=y_col, data=df, palette=palette, hue=x_col, legend=False)
+        ax = sns.barplot(x=x_col, y=y_col, data=self.df, palette=palette, hue=x_col, legend=False)
         plt.title(title)
         plt.xlabel(xlabel or x_col)
         plt.ylabel(ylabel or y_col)
@@ -109,20 +104,13 @@ class DataAnalysis:
         plt.grid(True)
         plt.show()
 
+    def plot_bar_charts(self):
+        self.prepare_summary_dataframes()
+        self.plot_bar_chart(self.channel_df[['Channel', 'Count']], 'Channel', 'Count', 'Artículos por canal')
+        self.plot_bar_chart(self.channel_shares_df, 'Channel', 'Total Shares', 'Compartidos por canal')
+        self.plot_bar_chart(self.weekday_df, 'Day', 'Count', 'Artículos por día de la semana')
+
     # Uso de la clase DataAnalysis
-
-    # Suponiendo que df_clean es el DataFrame limpio ya cargado y preprocesado
-    DataAnalysis = DataAnalysis(df_clean)
-
-    # Vista previa de los datos
-    DataAnalysis.data_channel_cols(df_clean)
-    print(DataAnalysis.preview())
-
-    # Gráficos de barras
-    channel_df, weekday_df, channel_shares_df = DataAnalysis.prepare_summary_dataframes(df_clean)
-    plot_bar_chart(channel_df, 'Channel', 'Count', 'Artículos por canal')
-    plot_bar_chart(channel_shares_df, 'Channel', 'Total Shares', 'Compartidos por canal')
-    plot_bar_chart(weekday_df, 'Day', 'Count', 'Artículos por día de la semana')
 
     # Artículos más compartidos
     top_articles = DataAnalysis.get_top_shared_articles(top_n=20)
@@ -147,6 +135,3 @@ class DataAnalysis:
 
     # Histogramas
     DataAnalysis.histogram('shares', title='Distribución de Compartidos', xlabel='Compartidos')
-
-
-
