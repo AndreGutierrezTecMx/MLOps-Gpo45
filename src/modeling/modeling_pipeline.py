@@ -101,8 +101,8 @@ class ModelPipeline:
         if missing:
             raise RuntimeError(f"Falta correr preprocess_data() antes de modelar. Faltan: {missing}")
         self.logger.info("Iniciando etapa de modelado…")
-        trainer = ModelTrainer(preprocess=self.preprocess_ct,X_train=self.X_train, X_test=self.X_test
-                               ,y_train=self.y_train, y_test=self.y_test,
+        trainer = ModelTrainer(preprocess=self.preprocess_ct,X_train=self.X_train, X_test=self.X_test,
+                               y_train=self.y_train, y_test=self.y_test,
                                cv_splits=5, random_state=42)
         metrics = {}
         best_estimators = {}
