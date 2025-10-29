@@ -1,11 +1,11 @@
 """
 ModelTrainer
 ------------
-Entrena los 4 modelos del notebook con el MISMO preprocesamiento:
+Entrena cuatro modelos con el MISMO preprocesamiento recibido:
   - HistGradientBoosting (Poisson)         [sin TTR]
   - Ridge (con TransformedTargetRegressor log1p/expm1)
-  - RandomForest (con TTR, rápido)
-  - XGBoost (con TTR, rápido)
+  - RandomForest (con TTR, búsqueda rápida)
+  - XGBoost (con TTR, búsqueda rápida)
 
 Devuelve métricas en escala real (RMSE, MAE, R2) y permite elegir el mejor por R².
 """
@@ -22,11 +22,11 @@ from sklearn.model_selection import KFold, RandomizedSearchCV
 from sklearn.linear_model import Ridge
 from sklearn.ensemble import RandomForestRegressor, HistGradientBoostingRegressor
 
-# Import limpio de XGBoost
+# Import condicionado de XGBoost (permite continuar si el paquete no está instalado).
 try:
     from xgboost import XGBRegressor  # pip install xgboost
 except Exception:
-    XGBRegressor = None  # Si no está instalado, lo omitimos con warning en fit_xgboost_fast()
+    XGBRegressor = None  # Si no está instalado, se omitirá el entrenamiento de XGB con aviso en logs.
 
 from scipy.stats import randint, uniform, loguniform
 import joblib
@@ -38,34 +38,52 @@ logger = get_logger(__name__)
 class ModelTrainer:
     def __init__(
         self,
-        preprocess,                         # ColumnTransformer ya armado
-        X_train, X_test, y_train, y_test,   # splits listos
-        cv_splits: int = 5,
-        random_state: int = 42,
+        preprocess,                         # ColumnTransformer ya armado (mismo usado para todos los modelos)
+        X_train, X_test, y_train, y_test,   # Conjuntos de entrenamiento y prueba previamente separados
+        cv_splits: int = 5,                 # Número de folds para validación cruzada
+        random_state: int = 42,             # Semilla de aleatoriedad para reproducibilidad
     ):
+        # Se guardan referencias a los datos y al preprocesador compartido.
         self.preprocess = preprocess
         self.X_train, self.X_test = X_train, X_test
         self.y_train, self.y_test = y_train, y_test
+
+        # Esquema de validación cruzada consistente para las búsquedas aleatorias.
         self.cv = KFold(n_splits=cv_splits, shuffle=True, random_state=random_state)
+
+        # Estructuras para registrar resultados y los mejores estimadores por familia de modelo.
         self.results: Dict[str, Dict[str, float]] = {}
         self.best_models: Dict[str, Any] = {}
 
-        # Poisson necesita conteos ≥ 0
+        # Requisito de Poisson: el objetivo (conteos) debe ser no negativo.
         if (self.y_train < 0).any() or (self.y_test < 0).any():
             raise ValueError("La pérdida Poisson requiere y >= 0.")
 
+        # Aviso si xgboost no está disponible: el resto de modelos seguirán funcionando.
         if XGBRegressor is None:
             logger.warning("⚠️ xgboost no importado; se omitirá fit_xgboost_fast() si se invoca.")
 
     # ---------- utilidades ----------
     @staticmethod
     def eval_real(y_true, y_pred) -> Dict[str, float]:
+        """
+        Calcula métricas en escala real del target:
+          - RMSE: raíz del error cuadrático medio
+          - MAE: error absoluto medio
+          - R2 : coeficiente de determinación
+        """
         rmse = np.sqrt(mean_squared_error(y_true, y_pred))
         mae  = mean_absolute_error(y_true, y_pred)
         r2   = r2_score(y_true, y_pred)
         return {"RMSE": rmse, "MAE": mae, "R2": r2}
 
     def _make_pipe_ttr(self, estimator) -> Pipeline:
+        """
+        Construye un pipeline con:
+          - preprocess (ColumnTransformer) compartido
+          - TransformedTargetRegressor aplicando log1p/expm1 sobre y
+        Este esquema se usa para modelos que no modelan conteos de forma nativa.
+        """
         return Pipeline(steps=[
             ("prep", self.preprocess),
             ("model", TransformedTargetRegressor(
@@ -76,7 +94,13 @@ class ModelTrainer:
 
     # ---------- modelos ----------
     def fit_hgb_poisson(self) -> Tuple[Any, Dict[str, float]]:
+        """
+        Entrena HistGradientBoostingRegressor con pérdida Poisson (sin TTR).
+        Realiza una búsqueda aleatoria de hiperparámetros y evalúa en test.
+        """
         logger.info("⏳ Entrenando HistGradientBoosting (Poisson)…")
+
+        # Modelo base con configuración apropiada para Poisson.
         hgb = HistGradientBoostingRegressor(
             loss="poisson",
             early_stopping=True,
@@ -86,8 +110,11 @@ class ModelTrainer:
             max_bins=255,
             random_state=42,
         )
+
+        # Pipeline: preprocesador + modelo (sin TTR).
         pipe = Pipeline([("prep", self.preprocess), ("model", hgb)])
 
+        # Espacio de búsqueda razonable y compacto para Poisson.
         param_space = {
             "model__learning_rate": loguniform(0.01, 0.12),
             "model__max_iter": randint(200, 600),
@@ -97,6 +124,7 @@ class ModelTrainer:
             "model__l2_regularization": loguniform(1e-9, 1e-2),
         }
 
+        # Búsqueda aleatoria con CV, optimizando MAE (negativo por convención de sklearn).
         search = RandomizedSearchCV(
             estimator=pipe,
             param_distributions=param_space,
@@ -110,18 +138,25 @@ class ModelTrainer:
         search.fit(self.X_train, self.y_train)
         logger.info(f"✔️ HGB-Poisson best_params={search.best_params_} | best_CV_MAE={-search.best_score_:.4f}")
 
+        # Evaluación en test con el mejor pipeline encontrado.
         best = search.best_estimator_
         preds = best.predict(self.X_test)
         metrics = self.eval_real(self.y_test, preds)
         logger.info(f"📊 HGB-Poisson test → {metrics}")
 
+        # Registro de resultados y mejor estimador.
         self.best_models["HistGradientBoosting (Poisson)"] = best
         self.results["HistGradientBoosting (Poisson)"] = metrics
         return best, metrics
 
     def fit_ridge(self) -> Tuple[Any, Dict[str, float]]:
+        """
+        Entrena una regresión Ridge envuelta en TransformedTargetRegressor (log1p/expm1).
+        Búsqueda aleatoria sobre alpha y evaluación en test.
+        """
         logger.info("⏳ Entrenando Ridge (con TTR log1p/expm1)…")
-        ridge = Ridge()  # Ridge no tiene random_state
+
+        ridge = Ridge()  # Ridge no expone random_state
         pipe = self._make_pipe_ttr(ridge)
 
         search = RandomizedSearchCV(
@@ -147,7 +182,12 @@ class ModelTrainer:
         return best, metrics
 
     def fit_random_forest_fast(self) -> Tuple[Any, Dict[str, float]]:
+        """
+        Entrena RandomForest con TTR (búsqueda rápida).
+        Reduce tiempo usando cv=2 e hiperparámetros acotados.
+        """
         logger.info("⏳ Entrenando RandomForest (rápido, con TTR)…")
+
         rf = RandomForestRegressor(n_jobs=-1, random_state=42)
         pipe = self._make_pipe_ttr(rf)
 
@@ -166,7 +206,7 @@ class ModelTrainer:
             param_distributions=param_space,
             n_iter=19,
             scoring="r2",
-            cv=2,                   # rápido
+            cv=2,                   # CV reducido para acelerar (trade-off entre tiempo y estabilidad)
             n_jobs=-1,
             random_state=42,
             verbose=1,
@@ -184,6 +224,10 @@ class ModelTrainer:
         return best, metrics
 
     def fit_xgboost_fast(self) -> Tuple[Any, Dict[str, float]]:
+        """
+        Entrena XGBoost con TTR (búsqueda rápida).
+        Requiere que el paquete xgboost esté instalado.
+        """
         if XGBRegressor is None:
             raise ImportError("xgboost no está instalado; instálalo para usar XGBRegressor.")
         logger.info("⏳ Entrenando XGBoost (rápido, con TTR)…")
@@ -208,7 +252,7 @@ class ModelTrainer:
             param_distributions=param_space,
             n_iter=10,
             scoring="r2",
-            cv=2,                    # rápido
+            cv=2,                    # CV reducido para rapidez
             n_jobs=-1,
             random_state=42,
             verbose=1,
