@@ -10,6 +10,7 @@ from sklearn.model_selection import KFold, RandomizedSearchCV
 
 from sklearn.linear_model import Ridge
 from sklearn.ensemble import RandomForestRegressor, HistGradientBoostingRegressor
+# TODO: Asegúrate de que XGBoost esté en los requisitos del proyecto
 from xgboost import XGBRegressor
 
 from scipy.stats import randint, uniform, loguniform

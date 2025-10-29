@@ -60,7 +60,7 @@ class DataCleaning:
                 self.df_clean[col] = pd.to_numeric(self.df_clean[col], errors='coerce')
                 
                 if self.df_clean[col].dtype != original_dtype:
-                    logger.debug(f"Convertida {col} de {original_dtype} a {self.df_clean[col].dtype}")
+                    logger.info(f"Convertida {col} de {original_dtype} a {self.df_clean[col].dtype}")
                     conversion_count += 1
                     converted_columns.append({
                         'columna': col,
