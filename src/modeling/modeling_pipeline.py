@@ -78,7 +78,7 @@ class ModelPipeline:
     
     def preprocess_data(self):
         self.logger.info("Iniciando etapa de preprocesamiento…")
-        pre = Preprocessor(df_clean=self.df, target_col=ColumnNames.SHARES, test_size=0.2, random_state=42).run()
+        pre = Preprocessor(df_clean=self.df, target_col=ColumnNames.SHARES.value, test_size=0.2, random_state=42).run()
         self.X_train, self.X_test, self.y_train, self.y_test = pre.get_splits()
         self.preprocess_ct = pre.get_preprocess()
         self.feature_groups = pre.get_feature_groups()
