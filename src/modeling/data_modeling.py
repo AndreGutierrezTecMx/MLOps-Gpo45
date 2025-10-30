@@ -27,14 +27,8 @@ from sklearn.model_selection import KFold, RandomizedSearchCV
 from sklearn.linear_model import Ridge
 from sklearn.ensemble import RandomForestRegressor, HistGradientBoostingRegressor
 
-# Import condicionado de XGBoost (permite continuar si el paquete no está instalado).
-try:
-    from xgboost import XGBRegressor  # pip install xgboost
-except Exception:
-    XGBRegressor = None  # Si no está instalado, se omitirá el entrenamiento de XGB con aviso en logs.
-
+from xgboost import XGBRegressor
 from scipy.stats import randint, uniform, loguniform
-import joblib
 from utils.logger import get_logger
 
 logger = get_logger(__name__)

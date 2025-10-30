@@ -13,6 +13,8 @@ class DataAnalysis:
     def get_channel_counts_and_shares(self):
         channel_cols = [col for col in self.df.columns if col.startswith(ColumnNames.DATA_CHANNEL_IS.value)]
 
+        self.df[channel_cols] = self.df[channel_cols].apply(pd.to_numeric, errors="coerce")
+
         # Conteo de artículos por canal
         counts = self.df[channel_cols].sum()
         no_channel_flag = (self.df[channel_cols].sum(axis=1) == 0).astype(int)
@@ -42,8 +44,8 @@ class DataAnalysis:
     
     # Función para preparar dataframes resumen
     def prepare_summary_dataframes(self):
-        self.channel_df = self.get_channel_counts_and_shares(self.df)
-        self.weekday_df = self.get_weekday_counts(self.df)
+        self.channel_df = self.get_channel_counts_and_shares()
+        self.weekday_df = self.get_weekday_counts()
         self.channel_shares_df = self.channel_df[[ColumnNames.CHANNEL.value, ColumnNames.TOTAL_SHARES.value]].copy()
 
     # Función para obtener los artículos más compartidos
@@ -114,14 +116,18 @@ class DataAnalysis:
         self.plot_bar_chart(self.channel_shares_df, ColumnNames.CHANNEL.value, ColumnNames.TOTAL_SHARES.value, 'Compartidos por canal')
         self.plot_bar_chart(self.weekday_df, ColumnNames.DAY.value, ColumnNames.COUNT.value, 'Artículos por día de la semana')
 
-    # Gráficos de dispersión específicos
-    def plot_scatter_and_histograms(self):
+    def print_scatter_plot(self):          
+        #Imágenenes vs Compartidos
         self.scatter_plot('num_imgs', title='Dispersión de Imágenes vs. Compartidos', xlabel='Número de Imágenes')
+        #Videos vs Compartidos
         self.scatter_plot('num_videos', title='Dispersión de Videos vs. Compartidos', xlabel='Número de Videos')
+        #Referencias vs Compartidos
         self.scatter_plot('num_hrefs', title='Dispersión de Referencias vs. Compartidos', xlabel='Número de Referencias')
+        #Tokens vs Compartidos
         self.scatter_plot('n_tokens_title', title='Dispersión de Tokens de Título vs. Compartidos', xlabel='Tokens de Título')
+        #Tokens de contenido vs Compartidos
         self.scatter_plot('n_tokens_content', title='Dispersión de Tokens de Contenido vs. Compartidos', xlabel='Tokens de Contenido')
-    
-    # Gráficos de histograma específicos
-    def plot_histograms(self):
-        self.histogram('shares', title='Distribución de Compartidos', xlabel='Compartidos')
+
+    def print_histograms(self):
+        # Histogramas
+        self.histogram(ColumnNames.SHARES.value, title='Distribución de Compartidos', xlabel='Compartidos')

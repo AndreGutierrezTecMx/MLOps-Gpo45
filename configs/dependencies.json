@@ -6,6 +6,7 @@
         {"module": "dvc_gdrive", "pip_name": "dvc[gdrive]"},
         {"module": "cryptography", "pip_name": "cryptography"},
         {"module": "category_encoders", "pip_name": "category_encoders"},
-        {"module": "mlflow", "pip_name": "mlflow"}
+        {"module": "mlflow", "pip_name": "mlflow"},
+        {"module": "xgboost", "pip_name": "xgboost==2.0.1"}
     ]
 }

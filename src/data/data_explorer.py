@@ -71,20 +71,18 @@ class DataExplorer:
 
     def unique_values_analysis(self) -> None:
         """Returns the number of unique values for each column in the DataFrame."""
-        if self.categorical_cols.empty:
+        if self.categorical_cols:
+            for col in self.categorical_cols[:10]:  # Primeras 10 para no saturar
+                unique_count = self.dataframe[col].nunique()
+                logger.info(f"Columna: {col}, Valores únicos: {unique_count}")
+                print(f"\n{col}:")
+                print(f"   Valores únicos: {unique_count}")
+                if unique_count < 20:
+                    logger.info(f"Valores en {col}: {self.dataframe[col].unique()}")
+                    print(f"   Valores: {self.dataframe[col].unique()[:10]}")
+        else:
             logger.info("No hay columnas categóricas para analizar.")
-            print("\n   ✓ No hay columnas categóricas para analizar")
-            return
-
-        for col in self.categorical_cols[:10]:  # Primeras 10 para no saturar
-            unique_count: int = self.dataframe[col].nunique()
-            logger.info(f"Columna: {col}, Valores únicos: {unique_count}")
-            print(f"\n{col}:")
-            print(f"   Valores únicos: {unique_count}")
-            if unique_count < 20:
-                logger.info(f"Valores en {col}: {self.dataframe[col].unique()}")
-                print(f"   Valores: {self.dataframe[col].unique()[:10]}")
-
+            print("No hay columnas categóricas para analizar")
 
     def full_report(self) -> None:
         """Generates a full report of the DataFrame analysis."""
