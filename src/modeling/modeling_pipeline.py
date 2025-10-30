@@ -27,8 +27,6 @@ class ModelPipeline:
         metadata_path: str = "/MLOps-Gpo45/data/interim/registry/data_versions.json"):
         lg.setup_logging()
         self.logger = lg.get_logger(__name__)
-        deps = DependencyChecker("configs/dependencies.json")
-        deps.ensure_dependencies()
         self.logger.info("Inicializando el pipeline de modelado...")
         self.file_path = file_path
         self.repo_url = repo_url
@@ -81,16 +79,14 @@ class ModelPipeline:
     def preprocess_data(self):
         self.logger.info("Iniciando etapa de preprocesamiento…")
         pre = Preprocessor(df_clean=self.df, target_col=ColumnNames.SHARES, test_size=0.2, random_state=42).run()
-        self.logger.info("✅ Preprocesamiento de datos completado.")
-        # 3) Guardar salidas para la etapa de modelado
         self.X_train, self.X_test, self.y_train, self.y_test = pre.get_splits()
         self.preprocess_ct = pre.get_preprocess()
         self.feature_groups = pre.get_feature_groups()
         self.logger.info(f"Feature groups: {self.feature_groups}")
-        self.logger.info("Preprocesamiento de datos completado.")
+        self.logger.info("✅ Preprocesamiento de datos completado.")
         return self
     
-    def modeling_data(self):
+    def train_models(self):
         """Placeholder for modeling steps."""
         required = ["X_train", "X_test", "y_train", "y_test", "preprocess_ct"]
         missing = [k for k in required if not hasattr(self, k)]
