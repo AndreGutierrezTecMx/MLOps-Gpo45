@@ -21,12 +21,15 @@ class DataAnalysis:
         counts[ColumnNames.NO_CHANNEL.value] = no_channel_flag.sum()
 
         # Total de compartidos por canal
-        shares = self.df[channel_cols].multiply(self.df[ColumnNames.SHARES.value], axis=0).sum()
+        shares = pd.Series(index=counts.index, dtype=np.float64)
+        for col in channel_cols:
+            shares[col] = self.df[self.df[col] == 1][ColumnNames.SHARES.value].sum()
+
         shares[ColumnNames.NO_CHANNEL.value] = self.df[no_channel_flag == 1][ColumnNames.SHARES.value].sum()
 
         # Combinar en un solo DataFrame
         combined = pd.DataFrame({
-            ColumnNames.CHANNEL.value: list(counts.index),
+            ColumnNames.CHANNEL.value: counts.index,
             ColumnNames.COUNT.value: counts.values,
             ColumnNames.TOTAL_SHARES.value: shares.values
         })
