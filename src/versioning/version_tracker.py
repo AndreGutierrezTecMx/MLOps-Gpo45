@@ -179,16 +179,17 @@ class VersionTracker:
         logger.error(f"No se encontró ningún modelo con esas metricas.")
         return None
 
-    def save_best_tracked_model(self, metric: str = "R2", save_path: str = "/MLOps-Gpo45/Models/"):
+    def save_best_tracked_model(self, metric: str = "R2", save_path: str = "models/"):
         """
         Guarda el mejor modelo rastreado en MLflow localmente.
         """
         best_run = self.get_best_tracked_model(metric=metric)
         if best_run:
-            model_uri = f"runs:/{best_run.run_id}/{best_run.run_name}"
+            model_uri = f"models:/{best_run.run_name}/latest"
             best_model = mlflow.sklearn.load_model(model_uri)
-            if save_path == "/MLOps-Gpo45/Models/":
-                save_path = "/MLOps-Gpo45/Models/{}{}.pkl".format(best_run.run_name, best_run.run_id)
+            if save_path == "models/":
+                save_path = "models/{}{}.pkl".format(best_run.run_name.replace(" ", "_"), best_run.run_id)
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
             joblib.dump(best_model, save_path)
             logger.info(f"Modelo '{best_run.run_name}' guardado en '{save_path}'.")
         else:

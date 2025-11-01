@@ -15,7 +15,7 @@ def main():
         # .plot_analysis() # Opcional: Descomentar para analizar gráficos.
         .preprocess_data()
         .train_models()
-        .save_model())
+        .get_best_model())
 
 if __name__ == "__main__":
     main()
