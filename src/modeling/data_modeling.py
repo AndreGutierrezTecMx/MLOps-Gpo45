@@ -30,6 +30,7 @@ from sklearn.ensemble import RandomForestRegressor, HistGradientBoostingRegresso
 from xgboost import XGBRegressor
 from scipy.stats import randint, uniform, loguniform
 from utils.logger import get_logger
+from versioning.version_tracker import VersionTracker
 
 logger = get_logger(__name__)
 
@@ -39,8 +40,9 @@ class ModelTrainer:
         self,
         preprocess,                         # ColumnTransformer ya armado (mismo usado para todos los modelos)
         X_train, X_test, y_train, y_test,   # Conjuntos de entrenamiento y prueba previamente separados
+        version_tracker: VersionTracker,                    # Para registrar versiones
         cv_splits: int = 5,                 # Número de folds para validación cruzada
-        random_state: int = 42,             # Semilla de aleatoriedad para reproducibilidad
+        random_state: int = 42              # Semilla de aleatoriedad para reproducibilidad
     ):
         # Guarda referencias a datos y preprocesador para reutilizarlos en cada modelo
         self.preprocess = preprocess
@@ -53,6 +55,11 @@ class ModelTrainer:
         # Estructuras para registrar resultados y mejores estimadores (por nombre de modelo)
         self.results: Dict[str, Dict[str, float]] = {}
         self.best_models: Dict[str, Any] = {}
+
+        # Para registrar versiones
+        self.version_tracker = version_tracker
+        version_tracker._set_train_data(X_train, y_train)
+        version_tracker._set_test_data(X_test, y_test)
 
         # Requisito de Poisson: el objetivo (conteos) debe ser no negativo
         if (self.y_train < 0).any() or (self.y_test < 0).any():
@@ -148,6 +155,7 @@ class ModelTrainer:
         # 3) Registro de artefactos en memoria (útil para MLflow fuera de esta clase)
         self.best_models["HistGradientBoosting (Poisson)"] = best
         self.results["HistGradientBoosting (Poisson)"] = metrics
+        self.version_tracker.track_mlflow_change("HistGradientBoosting (Poisson)", best, search.best_params_, metrics)
         return best, metrics
 
     def fit_ridge(self) -> Tuple[Any, Dict[str, float]]:
@@ -186,6 +194,7 @@ class ModelTrainer:
         # 3) Persistencia en las estructuras de la clase
         self.best_models["Ridge (tuned)"] = best
         self.results["Ridge (tuned)"] = metrics
+        self.version_tracker.track_mlflow_change("Ridge (tuned)", best, search.best_params_, metrics)
         return best, metrics
 
     def fit_random_forest_fast(self) -> Tuple[Any, Dict[str, float]]:
@@ -234,6 +243,7 @@ class ModelTrainer:
         # 3) Registro en estructuras internas
         self.best_models["RandomForest (tuned fast)"] = best
         self.results["RandomForest (tuned fast)"] = metrics
+        self.version_tracker.track_mlflow_change("RandomForest (tuned fast)", best, search.best_params_, metrics)
         return best, metrics
 
     def fit_xgboost_fast(self) -> Tuple[Any, Dict[str, float]]:
@@ -286,4 +296,5 @@ class ModelTrainer:
         # 3) Guarda el mejor estimador y sus métricas para consumir fuera (p.ej., MLflow)
         self.best_models["XGBoost (tuned fast)"] = best
         self.results["XGBoost (tuned fast)"] = metrics
+        self.version_tracker.track_mlflow_change("XGBoost (tuned fast)", best, search.best_params_, metrics)
         return best, metrics

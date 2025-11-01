@@ -1,5 +1,5 @@
+from typing import Optional
 import utils.logger as lg
-from utils.dependency_checker import DependencyChecker
 from data.data_reader import DataReader
 from data.data_explorer import DataExplorer
 from data.data_cleaning import DataCleaning
@@ -10,6 +10,7 @@ from data.data_analysis import DataAnalysis
 from data.data_preprocessing import Preprocessor
 from modeling.data_modeling import ModelTrainer
 from constants.column_names import ColumnNames
+from mlflow.entities import RunInfo as run_info
 
 class ModelPipeline:
     def __init__(
@@ -87,42 +88,45 @@ class ModelPipeline:
         return self
     
     def train_models(self):
-        """Placeholder for modeling steps."""
+        """Steps to train models using ModelTrainer."""
         required = ["X_train", "X_test", "y_train", "y_test", "preprocess_ct"]
         missing = [k for k in required if not hasattr(self, k)]
         if missing:
+            self.logger.error(f"Falta correr preprocess_data() antes de modelar. Faltan: {missing}")
             raise RuntimeError(f"Falta correr preprocess_data() antes de modelar. Faltan: {missing}")
         self.logger.info("Iniciando etapa de modelado…")
-        trainer = ModelTrainer(preprocess=self.preprocess_ct,X_train=self.X_train, X_test=self.X_test,
-                               y_train=self.y_train, y_test=self.y_test,
+        self.trainer = ModelTrainer(preprocess=self.preprocess_ct,X_train=self.X_train, X_test=self.X_test,
+                               y_train=self.y_train, y_test=self.y_test, version_tracker=self.vt,
                                cv_splits=5, random_state=42)
         metrics = {}
         best_estimators = {}
         # HGB (Poisson)
-        best_hgb, m_hgb = trainer.fit_hgb_poisson()
+        best_hgb, m_hgb = self.trainer.fit_hgb_poisson()
         best_estimators["HistGradientBoosting (Poisson)"] = best_hgb
         metrics["HistGradientBoosting (Poisson)"] = m_hgb
         # Ridge (TTR)
-        best_ridge, m_ridge = trainer.fit_ridge()
+        best_ridge, m_ridge = self.trainer.fit_ridge()
         best_estimators["Ridge (tuned)"] = best_ridge
         metrics["Ridge (tuned)"] = m_ridge
         # RF 
-        best_rf, m_rf = trainer.fit_random_forest_fast()
+        best_rf, m_rf = self.trainer.fit_random_forest_fast()
         best_estimators["RandomForest (tuned fast)"] = best_rf
         metrics["RandomForest (tuned fast)"] = m_rf
         # XGBoost 
         try:
-            best_xgb, m_xgb = trainer.fit_xgboost_fast()
+            best_xgb, m_xgb = self.trainer.fit_xgboost_fast()
             best_estimators["XGBoost (tuned fast)"] = best_xgb
             metrics["XGBoost (tuned fast)"] = m_xgb
         except Exception as e:
             self.logger.warning(f"No se corrió XGBoost: {e}")
-        # Elegir mejor por R²
-        best_name, best_model = trainer.best_by_r2()
-        # Exponer resultados para MLflow
-        self.model_metrics = metrics
-        self.best_model_name = best_name
-        self.best_model = best_model
-        self.best_models_all = best_estimators
-        self.logger.info("Modelado de datos completado.")
+        self.logger.info("✅ Modelado completado.")
         return self
+    
+    def get_best_model_info(self, metric: str = "R2") -> Optional[run_info]:
+        """Gets the best tracked model info from VersionTracker."""
+        return self.vt.get_best_tracked_model(metric=metric)
+    
+    def save_model(self):
+        """Saves the best tracked model locally."""
+        self.vt.save_best_tracked_model()
+

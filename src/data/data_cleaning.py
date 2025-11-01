@@ -60,7 +60,7 @@ class DataCleaning:
             'total_convertidas': conversion_count,
             'columnas_convertidas': converted_columns
         }
-        self.tracker.track_change(self.df_clean, log_to_mlflow=False, description="Conversion de tipos de datos")
+        self.tracker.track_dvc_change(self.df_clean, description="Conversion de tipos de datos")
         logger.info(f"✅ Se convirtieron exitosamente {conversion_count} columnas a tipos numéricos")
         return self
     
@@ -88,39 +88,39 @@ class DataCleaning:
             
             if columns_to_drop:
                 self.df_clean = self.df_clean.drop(columns=columns_to_drop)
-                self.tracker.track_change(self.df_clean, log_to_mlflow=False,
+                self.tracker.track_dvc_change(self.df_clean, log_to_mlflow=False,
                                            description=f"Eliminadas columnas con >{threshold*100}% nulos")
                 logger.info(f"Eliminadas {len(columns_to_drop)} columnas con >{threshold*100}% valores faltantes")
         
         # Aplicar estrategia para valores faltantes restantes
         if strategy == 'drop':
             self.df_clean = self.df_clean.dropna()
-            self.tracker.track_change(self.df_clean,
-                                       log_to_mlflow=False, description="Eliminadas filas con valores nulos",)
+            self.tracker.track_dvc_change(self.df_clean,
+                                       description="Eliminadas filas con valores nulos",)
         elif strategy == 'mean':
             numeric_columns = self.df_clean.select_dtypes(include=[np.number]).columns
             self.df_clean[numeric_columns] = self.df_clean[numeric_columns].fillna(
                 self.df_clean[numeric_columns].mean()
             )
-            self.tracker.track_change(self.df_clean, log_to_mlflow=False, description=
+            self.tracker.track_dvc_change(self.df_clean, description=
                                         "Imputados nulos con media",)
         elif strategy == 'median':
             numeric_columns = self.df_clean.select_dtypes(include=[np.number]).columns
             self.df_clean[numeric_columns] = self.df_clean[numeric_columns].fillna(
                 self.df_clean[numeric_columns].median()
             )
-            self.tracker.track_change(self.df_clean,
-                                        log_to_mlflow=False, description="Imputados nulos con mediana",)
+            self.tracker.track_dvc_change(self.df_clean,
+                                        description="Imputados nulos con mediana",)
         elif strategy == 'mode':
             for col in self.df_clean.columns:
                 if not self.df_clean[col].mode().empty:
                     self.df_clean[col].fillna(self.df_clean[col].mode()[0], inplace=True)
-            self.tracker.track_change(self.df_clean,
-                                       log_to_mlflow=False, description="Imputados nulos con moda",)
+            self.tracker.track_dvc_change(self.df_clean,
+                                       description="Imputados nulos con moda",)
         elif strategy == 'forward_fill':
             self.df_clean = self.df_clean.fillna(method='ffill')
-            self.tracker.track_change(self.df_clean,
-                                        log_to_mlflow=False, description="Imputados nulos con forward fill",)
+            self.tracker.track_dvc_change(self.df_clean,
+                                        description="Imputados nulos con forward fill",)
         
         final_nulls = self.df_clean.isnull().sum().sum()
         
@@ -152,8 +152,8 @@ class DataCleaning:
         
         initial_rows = len(self.df_clean)
         self.df_clean = self.df_clean.drop_duplicates(subset=subset, keep=keep)
-        self.tracker.track_change(self.df_clean,
-                                   log_to_mlflow=False, description="Eliminadas filas duplicadas",)
+        self.tracker.track_dvc_change(self.df_clean,
+                                   description="Eliminadas filas duplicadas",)
         duplicates_removed = initial_rows - len(self.df_clean)
         
         self.cleaning_report['duplicados'] = {
@@ -201,8 +201,6 @@ class DataCleaning:
                     # Limitar valores atípicos en lugar de eliminarlos
                     self.df_clean.loc[self.df_clean[col] < lower_bound, col] = lower_bound
                     self.df_clean.loc[self.df_clean[col] > upper_bound, col] = upper_bound
-                    self.tracker.track_change(self.df_clean,
-                                               log_to_mlflow=False, description=f"Limitados valores atípicos en {col} usando IQR")
                     
                 elif method == 'zscore':
                     z_scores = np.abs((self.df_clean[col] - self.df_clean[col].mean()) / self.df_clean[col].std())
@@ -211,8 +209,6 @@ class DataCleaning:
                     
                     # Eliminar filas con valores atípicos según z-score
                     self.df_clean = self.df_clean[~outliers_mask]
-                    self.tracker.track_change(self.df_clean,
-                                               log_to_mlflow=False, description=f"Eliminadas filas con valores atípicos en {col} usando z-score")
                 if outliers_count > 0:
                     outliers_info[col] = int(outliers_count)
                     total_outliers += outliers_count
@@ -223,6 +219,9 @@ class DataCleaning:
             'total_valores_atipicos_manejados': total_outliers,
             'columnas_afectadas': outliers_info
         }
+
+        self.tracker.track_dvc_change(self.df_clean,
+                                               description=f'Manejo de valores atípicos en las columnas {columns} usando {method}',)
         
         logger.info(f"✅ Se manejaron {total_outliers} valores atípicos en {len(outliers_info)} columnas")
         return self

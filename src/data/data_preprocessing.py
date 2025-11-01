@@ -115,7 +115,6 @@ class Preprocessor:
         X, y = self._build_xy()
         self._split_train_test(X, y)
         self._build_column_transformer()
-        logger.info("✅ [Preprocessor] Preprocesamiento completado.")
         return self
 
     def get_splits(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:

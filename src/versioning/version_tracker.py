@@ -2,13 +2,18 @@ import hashlib
 import pandas as pd
 import json
 import mlflow
+from mlflow.data.pandas_dataset import from_pandas
+
 import os
 import subprocess
 import sys
 from datetime import datetime
 from typing import Optional
 from versioning.version_control import VersionControl
+from typing import Dict, Any, Tuple
 from utils.logger import get_logger
+from mlflow.entities import RunInfo as run_info
+import joblib
 
 logger = get_logger(__name__)
 
@@ -42,6 +47,18 @@ class VersionTracker:
             with open(self.metadata_path, "w") as f:
                 json.dump({}, f, indent=4)
 
+    def _set_train_data(self, X_train: pd.DataFrame, y_train: pd.Series):
+        self.X_train = X_train
+        self.y_train = y_train
+        train_data = pd.concat([self.X_train, self.y_train], axis=1)
+        self.train_dataset = from_pandas(train_data, name="training_data")
+
+    def _set_test_data(self, X_test: pd.DataFrame, y_test: pd.Series):
+        self.X_test = X_test
+        test_data = self.X_test.copy()
+        test_data["target"] = y_test
+        self.test_dataset = from_pandas(test_data, targets="target", name="testing_data")
+        
     def _hash_dataframe(self, df: pd.DataFrame) -> str:
         """Calcula un hash SHA1 único para el contenido del DataFrame."""
         df_bytes = df.to_csv(index=False).encode("utf-8")
@@ -90,14 +107,13 @@ class VersionTracker:
 
         print(f"Metadata updated for dataset '{name}' with version '{version_hash}' in {self.metadata_path}.")
 
-    def track_change(
+    def track_dvc_change(
         self,
         df: pd.DataFrame,
         description: str = "",
         name: str = "online_news_raw_cleaned",
         save_as: Optional[str] = None,
         commit_message: Optional[str] = None,
-        log_to_mlflow: bool = True,
     ) -> str:
         """
         Registra una versión del DataFrame usando DVC y, opcionalmente, en MLflow.
@@ -112,15 +128,68 @@ class VersionTracker:
         self._run_dvc_command("push", "-r", self.vc.dvc_remote_name)
         logger.info(f"✅ DataFrame versioned with DVC for change: {description}")
 
-        # MLflow
-        if log_to_mlflow:
-            with mlflow.start_run(run_name=f"dataset_{name}_{version_hash}"):
-                mlflow.log_param("dataset_name", name)
-                mlflow.log_param("version_hash", version_hash)
-                mlflow.log_param("description", description)
-                mlflow.log_artifact(file_path, artifact_path="datasets")
-
         # Actualizar registro local
         self._update_metadata(name, version_hash, file_path, description, commit_msg)
 
         return version_hash
+    
+    def track_mlflow_change(
+            self,
+            model_name: str,
+            best_estimator,
+            best_params: Dict[str, Any],
+            metrics: Dict[str, float]
+    ):
+        """
+        Registra información de un modelo en MLflow y VersionTracker.
+        """
+        with mlflow.start_run(run_name=model_name):
+            # Input de los datasets utilizados
+            mlflow.log_input(self.train_dataset, context="training")
+            mlflow.log_input(self.test_dataset, context="testing")
+
+            # Log de parámetros e hiperparámetros
+            mlflow.log_params(best_params)
+
+            # Log de métricas de evaluación
+            mlflow.log_metrics(metrics)
+
+            # Guardar el modelo completo
+            mlflow.sklearn.log_model(best_estimator, name=model_name.replace(" ", "_"), 
+                                     input_example=self.X_test, registered_model_name=model_name)
+
+            run_id = mlflow.active_run().info.run_id
+
+        logger.info(f"🧠 Modelo '{model_name}' registrado en MLflow y VersionTracker (run_id={run_id})")
+
+    def get_best_tracked_model(self, metric: str = "R2") -> Optional[run_info]:
+        """
+        Obtiene el run_id del mejor modelo registrado en MLflow para un nombre dado.
+        """
+        client = mlflow.tracking.MlflowClient(tracking_uri=self.vc.mlflow_tracking_uri)
+        experiment = client.get_experiment_by_name(self.vc.mlflow_experiment)
+        runs = client.search_runs(
+            experiment_ids=[experiment.experiment_id],
+            order_by=[f"metrics.{metric} DESC"]
+        )
+        if runs:
+            best_run = runs[0]
+            logger.info(f"Mejor modelo '{best_run.info.run_name}' encontrado: run_id={best_run.info.run_id}")
+            return best_run.info
+        logger.error(f"No se encontró ningún modelo con esas metricas.")
+        return None
+
+    def save_best_tracked_model(self, metric: str = "R2", save_path: str = "/MLOps-Gpo45/Models/"):
+        """
+        Guarda el mejor modelo rastreado en MLflow localmente.
+        """
+        best_run = self.get_best_tracked_model(metric=metric)
+        if best_run:
+            model_uri = f"runs:/{best_run.run_id}/{best_run.run_name}"
+            best_model = mlflow.sklearn.load_model(model_uri)
+            if save_path == "/MLOps-Gpo45/Models/":
+                save_path = "/MLOps-Gpo45/Models/{}{}.pkl".format(best_run.run_name, best_run.run_id)
+            joblib.dump(best_model, save_path)
+            logger.info(f"Modelo '{best_run.run_name}' guardado en '{save_path}'.")
+        else:
+            logger.error(f"No se pudo guardar el modelo porque no se encontró ningún run_id.")
