@@ -1,9 +1,8 @@
 from utils.dependency_checker import DependencyChecker
 
 def main():
-    # Verificar dependencias antes de iniciar el pipeline
-    deps = DependencyChecker("configs/dependencies.json")
-    deps.ensure_dependencies()
+    # Verificar e instalar dependencias
+    DependencyChecker.ensure_dependencies("configs/dependencies.json")
 
     from modeling.modeling_pipeline import ModelPipeline
     # Inicializar y ejecutar el pipeline de modelado
@@ -12,10 +11,10 @@ def main():
     (pipeline.load_data()
         .explore_data()
         .clean_data()
-        # .plot_analysis() # Opcional: Descomentar para analizar gráficos.
+        #.plot_analysis() # Opcional: Descomentar para analizar gráficos.
         .preprocess_data()
         .train_models()
-        .get_best_model())
+        .get_best_model_info())
 
 if __name__ == "__main__":
     main()
