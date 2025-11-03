@@ -32,3 +32,37 @@ The dataset **summarizes a heterogeneous set of features** about each article �
 | 🤖 **ML Engineer** | **Carlos** | - Model Construction<br>- Hyperparameter Tuning<br>- Model Evaluation |
 
 ---
+
+## 📁 Project Structure
+
+The project follows a **hierarchical and modular structure** designed for MLOps best practices:
+
+```
+project-root/
+│
+├── configs/                 # Configuration and dependency files
+│
+├── data/                    # Data storage directory
+│   ├── raw/                 # Raw datasets (unmodified)
+│   ├── interim/             # Intermediate datasets (partially cleaned)
+│   └── processed/           # Final processed datasets ready for modeling
+│
+├── docs/                    # Documentation, reports, and project information
+│
+├── models/                  # Trained models and serialized versions
+│
+├── notebooks/               # Experimental and exploratory notebooks
+│
+├── src/                     # Main source code directory
+│   ├── constants/           # Global constants and project paths
+│   ├── data/                # Data processing scripts
+│   ├── modeling/            # Model training, validation, and inference code
+│   ├── utils/               # Helper functions and utility classes
+│   └── versioning/          # DVC and MLflow version control configurations
+│
+└── README.md                # Main project documentation
+```
+
+> 🧭 **Note:** This structure supports reproducibility and scalability with tools like **DVC**, **MLflow**, and **Docker**.
+
+---
