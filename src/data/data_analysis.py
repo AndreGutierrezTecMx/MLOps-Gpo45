@@ -105,10 +105,20 @@ class DataAnalysis:
 
     # Gráfico de Dispersión
     def scatter_plot(self, x_col, y_col="shares", title=None, xlabel=None, ylabel="Compartidos"):
+        # Asegura que las columnas sean numéricas
+        x = pd.to_numeric(self.df[x_col], errors='coerce')
+        y = pd.to_numeric(self.df[y_col], errors='coerce')
+
+        # Asegura que sean cadenas de texto
+        title = str(title or f"Dispersión de {x_col} vs {y_col}")
+        xlabel = str(xlabel or x_col)
+        ylabel = str(ylabel or "Compartidos")
+
+        # Graficar
         plt.figure(figsize=(10, 6))
-        plt.scatter(self.df[x_col], self.df[y_col], alpha=0.5)
-        plt.title(title or f'Dispersión de {x_col} vs. {y_col}')
-        plt.xlabel(xlabel or x_col)
+        plt.scatter(x, y, alpha=0.5)
+        plt.title(title)
+        plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.grid(True)
         plt.show()
