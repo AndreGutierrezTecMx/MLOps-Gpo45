@@ -25,7 +25,7 @@ class VersionControl:
         mlflow_experiment: str = "default",
         dvc_remote_type: DvcRemoteType = DvcRemoteType.LOCAL,
         dvc_remote_name: str = "myremote",
-        dvc_remote_path: str = "../../dvc_remote"):
+        dvc_remote_path: str = "/dvc_remote"):
         """
         Inicializa el control de versiones con DVC y MLflow.
 
@@ -44,6 +44,8 @@ class VersionControl:
         self.dvc_remote_name = dvc_remote_name
         self.secrets_manager = SecretsManager()
         self.mlflow_port = mlflow_port
+        self.mlflow_tracking_uri = mlflow_tracking_uri
+        self.mlflow_experiment = mlflow_experiment
 
         # Inicializar DVC en el proyecto si no está ya inicializado
         self._init_dvc()
@@ -64,6 +66,7 @@ class VersionControl:
                 new_name = f"{mlflow_experiment}_{random.randint(1000, 9999)}"
                 logger.warning(f"⚠️ El experimento '{mlflow_experiment}' estaba eliminado. Creando nuevo: '{new_name}'")
                 mlflow.set_experiment(new_name)
+                self.mlflow_experiment = new_name
             else:
                 logger.exception(f"❌ Error configurando experimento MLflow: {e}")
                 raise
@@ -263,6 +266,3 @@ class VersionControl:
             logger.info(f"🚀 MLflow UI ejecutándose en http://127.0.0.1:{port}")
         except Exception as e:
             logger.exception(f"❌ Error al iniciar MLflow UI: {e}")
-
-
-
