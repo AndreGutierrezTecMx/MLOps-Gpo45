@@ -11,6 +11,8 @@ from data.data_preprocessing import Preprocessor
 from modeling.data_modeling import ModelTrainer
 from constants.column_names import ColumnNames
 from mlflow.entities import RunInfo as run_info
+import json
+from utils.seed import set_seeds 
 
 class ModelPipeline:
     def __init__(
@@ -26,7 +28,6 @@ class ModelPipeline:
         dvc_remote_path: str = "../../dvc_remote",
         output_dir: str = "/MLOps-Gpo45/data/",
         metadata_path: str = "/MLOps-Gpo45/data/interim/registry/data_versions.json",
-        seed: int = 42, #Semilla
         ):
         lg.setup_logging()
         self.logger = lg.get_logger(__name__)
@@ -41,6 +42,11 @@ class ModelPipeline:
                             dvc_remote_path=dvc_remote_path)
         self.vt = VersionTracker(version_control=self.vc, output_dir=f'{self.vc.project_root}/{output_dir}interim', metadata_path=f'{self.vc.project_root}/{metadata_path}')
         self.dr = DataReader(file_path=f'{self.vc.project_root}/{self.file_path}', repo_url=self.repo_url, revision=self.revision)
+         # --- leer semilla desde configs/experiment.json ---
+        with open("configs/experiment.json", "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+        seed = int(cfg.get("seed", 42))
+        set_seeds(seed)  # << fijamos semillas aquí para paso 3 
         self.seed = int(seed) #Semilla para repetibilidad
         
     
