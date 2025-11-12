@@ -25,7 +25,9 @@ class ModelPipeline:
         dvc_remote_name: str = "myremote",
         dvc_remote_path: str = "../../dvc_remote",
         output_dir: str = "/MLOps-Gpo45/data/",
-        metadata_path: str = "/MLOps-Gpo45/data/interim/registry/data_versions.json"):
+        metadata_path: str = "/MLOps-Gpo45/data/interim/registry/data_versions.json",
+        seed: int = 42, #Semilla
+        ):
         lg.setup_logging()
         self.logger = lg.get_logger(__name__)
         self.logger.info("Inicializando el pipeline de modelado...")
@@ -39,6 +41,7 @@ class ModelPipeline:
                             dvc_remote_path=dvc_remote_path)
         self.vt = VersionTracker(version_control=self.vc, output_dir=f'{self.vc.project_root}/{output_dir}interim', metadata_path=f'{self.vc.project_root}/{metadata_path}')
         self.dr = DataReader(file_path=f'{self.vc.project_root}/{self.file_path}', repo_url=self.repo_url, revision=self.revision)
+        self.seed = int(seed) #Semilla para repetibilidad
         
     
     def load_data(self):
@@ -79,7 +82,7 @@ class ModelPipeline:
     
     def preprocess_data(self):
         self.logger.info("Iniciando etapa de preprocesamiento…")
-        pre = Preprocessor(df_clean=self.df, target_col=ColumnNames.SHARES.value, test_size=0.2, random_state=42).run()
+        pre = Preprocessor(df_clean=self.df, target_col=ColumnNames.SHARES.value, test_size=0.2, random_state=self.seed).run() #Semilla configurable
         self.X_train, self.X_test, self.y_train, self.y_test = pre.get_splits()
         self.preprocess_ct = pre.get_preprocess()
         self.feature_groups = pre.get_feature_groups()
@@ -97,7 +100,7 @@ class ModelPipeline:
         self.logger.info("Iniciando etapa de modelado…")
         self.trainer = ModelTrainer(preprocess=self.preprocess_ct,X_train=self.X_train, X_test=self.X_test,
                                y_train=self.y_train, y_test=self.y_test, version_tracker=self.vt,
-                               cv_splits=5, random_state=42)
+                               cv_splits=5, random_state=self.seed) #Semilla Configurable
         metrics = {}
         best_estimators = {}
         # HGB (Poisson)
