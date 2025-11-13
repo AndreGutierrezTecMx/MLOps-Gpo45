@@ -7,6 +7,7 @@ Carga el modelo desde MLflow y realiza predicciones.
 import mlflow
 import pandas as pd
 import numpy as np
+from pathlib import Path
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -45,7 +46,8 @@ class ModelPredictor:
             self._load_model()
         except Exception as e:
             logger.warning(f"No se pudo cargar el modelo al inicializar: {e}")
-            logger.info("La API iniciará pero el modelo no estará disponible hasta que se cargue correctamente")
+            logger.info(
+                "La API iniciará pero el modelo no estará disponible hasta que se cargue correctamente")
 
     def _load_model(self) -> None:
         """
@@ -86,13 +88,40 @@ class ModelPredictor:
 
             # Cargar el modelo
             model_uri = f"runs:/{best_run.info.run_id}/model"
-            self.model = mlflow.sklearn.load_model(model_uri)
 
-            logger.info(
-                f"Modelo cargado: {self.model_info['run_name']} "
-                f"(run_id={self.model_info['run_id'][:8]}..., "
-                f"{self.metric}={self.model_info['metric_value']})"
-            )
+            # Si no es HTTP, cargar directamente desde el tracking URI actual
+            if not self.mlflow_tracking_uri.startswith("http"):
+                self.model = mlflow.sklearn.load_model(model_uri)
+                return
+
+            # Para HTTP, intentar cargar desde filesystem local primero para evitar problemas con el servidor MLflow
+            project_root = Path(__file__).resolve().parents[2]
+            local_mlruns = project_root / "mlruns"
+
+            # Si no existe mlruns local, cargar desde servidor HTTP
+            if not local_mlruns.exists():
+                self.model = mlflow.sklearn.load_model(model_uri)
+                return
+
+            # Intentar cargar desde filesystem local
+            try:
+                local_tracking_uri = str(local_mlruns.resolve().as_uri())
+                original_uri = mlflow.get_tracking_uri()
+                mlflow.set_tracking_uri(local_tracking_uri)
+                logger.info(
+                    f"Intentando cargar modelo desde filesystem local: {local_tracking_uri}")
+                self.model = mlflow.sklearn.load_model(model_uri)
+                mlflow.set_tracking_uri(original_uri)  # Restaurar URI original
+                logger.info("Modelo cargado exitosamente desde filesystem local")
+                return
+            except Exception as local_error:
+                logger.warning(
+                    f"Error cargando desde filesystem local: {local_error}")
+                logger.info("Intentando cargar desde servidor HTTP...")
+                mlflow.set_tracking_uri(self.mlflow_tracking_uri)
+
+            # Fallback: cargar desde servidor HTTP
+            self.model = mlflow.sklearn.load_model(model_uri)
 
         except Exception as e:
             logger.exception(f"Error cargando modelo desde MLflow: {e}")
