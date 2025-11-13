@@ -18,7 +18,7 @@ class PredictionRequest(BaseModel):
     )
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "data": [
                     {
@@ -44,7 +44,7 @@ class PredictionResponse(BaseModel):
     )
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "predictions": [3456.78]
             }
