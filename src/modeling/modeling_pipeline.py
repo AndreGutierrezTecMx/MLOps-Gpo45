@@ -1,4 +1,5 @@
 from typing import Optional
+from pathlib import Path
 import utils.logger as lg
 from data.data_reader import DataReader
 from data.data_explorer import DataExplorer
@@ -26,8 +27,8 @@ class ModelPipeline:
         dvc_remote_type: DvcRemoteType = DvcRemoteType.LOCAL,
         dvc_remote_name: str = "myremote",
         dvc_remote_path: str = "../../dvc_remote",
-        output_dir: str = "/MLOps-Gpo45/data/",
-        metadata_path: str = "/MLOps-Gpo45/data/interim/registry/data_versions.json",
+        output_dir: str = "data/",
+        metadata_path: str = "data/interim/registry/data_versions.json",
         ):
         lg.setup_logging()
         self.logger = lg.get_logger(__name__)
@@ -43,7 +44,8 @@ class ModelPipeline:
         self.vt = VersionTracker(version_control=self.vc, output_dir=f'{self.vc.project_root}/{output_dir}interim', metadata_path=f'{self.vc.project_root}/{metadata_path}')
         self.dr = DataReader(file_path=f'{self.vc.project_root}/{self.file_path}', repo_url=self.repo_url, revision=self.revision)
          # --- leer semilla desde configs/experiment.json ---
-        with open("configs/experiment.json", "r", encoding="utf-8") as f:
+        config_path = Path(self.vc.project_root) / "configs" / "experiment.json"
+        with open(config_path, "r", encoding="utf-8") as f:
             cfg = json.load(f)
         seed = int(cfg.get("seed", 42))
         set_seeds(seed)  # << fijamos semillas aquí para paso 3 

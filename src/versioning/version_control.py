@@ -37,7 +37,7 @@ class VersionControl:
             dvc_remote_name (str): Nombre del remoto en DVC.
             secrets_manager (SecretsManager, optional): Para obtener credenciales seguras.
         """
-        self.project_root = Path(__file__).resolve().parents[3]
+        self.project_root = Path(__file__).resolve().parents[2]
         os.chdir(self.project_root)
         self.dvc_remote_type = dvc_remote_type
         self.dvc_remote_path = dvc_remote_path
