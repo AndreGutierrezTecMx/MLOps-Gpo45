@@ -86,8 +86,13 @@ class ModelPredictor:
                 'metric_value': best_run.data.metrics.get(self.metric, 'N/A')
             }
 
+            # Obtener el artifact_path del modelo (nombre con espacios reemplazados por guiones bajos)
+            run_id = best_run.info.run_id
+            model_name = best_run.info.run_name
+            artifact_path = model_name.replace(" ", "_")
+
             # Cargar el modelo
-            model_uri = f"runs:/{best_run.info.run_id}/model"
+            model_uri = f"runs:/{run_id}/{artifact_path}"
 
             # Si no es HTTP, cargar directamente desde el tracking URI actual
             if not self.mlflow_tracking_uri.startswith("http"):
@@ -97,30 +102,64 @@ class ModelPredictor:
             # Para HTTP, intentar cargar desde filesystem local primero para evitar problemas con el servidor MLflow
             project_root = Path(__file__).resolve().parents[2]
             local_mlruns = project_root / "mlruns"
+            local_mlartifacts = project_root / "mlartifacts"
 
-            # Si no existe mlruns local, cargar desde servidor HTTP
-            if not local_mlruns.exists():
-                self.model = mlflow.sklearn.load_model(model_uri)
-                return
+            # Intentar cargar desde mlartifacts primero (donde MLflow guarda los artefactos)
+            if local_mlartifacts.exists():
+                try:
+                    # Construir path directo al modelo en mlartifacts
+                    model_path = local_mlartifacts / \
+                        str(experiment.experiment_id) / \
+                        run_id / "artifacts" / artifact_path
 
-            # Intentar cargar desde filesystem local
-            try:
-                local_tracking_uri = str(local_mlruns.resolve().as_uri())
-                original_uri = mlflow.get_tracking_uri()
-                mlflow.set_tracking_uri(local_tracking_uri)
-                logger.info(
-                    f"Intentando cargar modelo desde filesystem local: {local_tracking_uri}")
-                self.model = mlflow.sklearn.load_model(model_uri)
-                mlflow.set_tracking_uri(original_uri)  # Restaurar URI original
-                logger.info("Modelo cargado exitosamente desde filesystem local")
-                return
-            except Exception as local_error:
-                logger.warning(
-                    f"Error cargando desde filesystem local: {local_error}")
-                logger.info("Intentando cargar desde servidor HTTP...")
-                mlflow.set_tracking_uri(self.mlflow_tracking_uri)
+                    # Verificar si el modelo existe localmente
+                    if model_path.exists():
+                        logger.info(
+                            f"Intentando cargar modelo desde mlartifacts: {model_path}")
+                        # Cargar directamente desde el path del modelo
+                        self.model = mlflow.sklearn.load_model(str(model_path))
+                        logger.info(
+                            "Modelo cargado exitosamente desde mlartifacts")
+                        return
+                    else:
+                        logger.warning(
+                            f"Modelo no encontrado en mlartifacts: {model_path}")
+                except Exception as local_error:
+                    logger.warning(
+                        f"Error cargando desde mlartifacts: {local_error}")
 
-            # Fallback: cargar desde servidor HTTP
+            # Intentar cargar desde mlruns como fallback
+            if local_mlruns.exists():
+                try:
+                    # Construir path directo al modelo en mlruns
+                    model_path = local_mlruns / \
+                        str(experiment.experiment_id) / \
+                        run_id / "artifacts" / artifact_path
+
+                    # Verificar si el modelo existe localmente
+                    if model_path.exists():
+                        logger.info(
+                            f"Intentando cargar modelo desde mlruns: {model_path}")
+                        original_uri = mlflow.get_tracking_uri()
+                        # Usar path directo al directorio mlruns
+                        mlflow.set_tracking_uri(str(local_mlruns.resolve()))
+                        self.model = mlflow.sklearn.load_model(
+                            f"runs:/{run_id}/{artifact_path}")
+                        # Restaurar URI original
+                        mlflow.set_tracking_uri(original_uri)
+                        logger.info(
+                            "Modelo cargado exitosamente desde mlruns")
+                        return
+                    else:
+                        logger.warning(
+                            f"Modelo no encontrado en mlruns: {model_path}")
+                except Exception as local_error:
+                    logger.warning(
+                        f"Error cargando desde mlruns: {local_error}")
+
+            # Fallback: cargar desde servidor HTTP (puede ser lento o colgarse)
+            logger.warning(
+                "Cargando modelo desde servidor HTTP - esto puede tardar...")
             self.model = mlflow.sklearn.load_model(model_uri)
 
         except Exception as e:

@@ -136,7 +136,8 @@ Realiza predicciones sobre el número de shares esperados para uno o más artíc
       "title_subjectivity": 0.4,
       "title_sentiment_polarity": 0.2,
       "abs_title_subjectivity": 0.4,
-      "abs_title_sentiment_polarity": 0.2
+      "abs_title_sentiment_polarity": 0.2,
+      "article_year": 2013
     }
   ]
 }
