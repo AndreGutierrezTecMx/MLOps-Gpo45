@@ -13,12 +13,17 @@ from src.constants.mlflow_config import (
     MODEL_METRIC
 )
 
-# Cargar el modelo al iniciar
-predictor = ModelPredictor(
-    mlflow_tracking_uri=MLFLOW_TRACKING_URI,
-    mlflow_experiment=MLFLOW_EXPERIMENT,
-    metric=MODEL_METRIC
-)
+# Inicializar predictor (intentará cargar el modelo, pero no fallará si no puede)
+try:
+    predictor = ModelPredictor(
+        mlflow_tracking_uri=MLFLOW_TRACKING_URI,
+        mlflow_experiment=MLFLOW_EXPERIMENT,
+        metric=MODEL_METRIC
+    )
+except Exception as e:
+    # Si falla completamente, crear un predictor vacío
+    predictor = None
+    print(f"Advertencia: No se pudo inicializar el predictor: {e}")
 
 # Inicializar FastAPI app
 app = FastAPI(

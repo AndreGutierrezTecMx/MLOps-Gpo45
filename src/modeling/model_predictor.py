@@ -40,7 +40,12 @@ class ModelPredictor:
         # Configurar MLflow
         mlflow.set_tracking_uri(mlflow_tracking_uri)
 
-        self._load_model()
+        # Intentar cargar el modelo, pero no fallar si no se puede
+        try:
+            self._load_model()
+        except Exception as e:
+            logger.warning(f"No se pudo cargar el modelo al inicializar: {e}")
+            logger.info("La API iniciará pero el modelo no estará disponible hasta que se cargue correctamente")
 
     def _load_model(self) -> None:
         """
