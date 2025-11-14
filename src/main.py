@@ -12,7 +12,7 @@ def main():
         .load_data()
         .explore_data()
         .clean_data()
-        # .plot_analysis()
+        .plot_analysis()
         .preprocess_data()
         .train_models()
         .get_best_model_info()
