@@ -22,10 +22,10 @@ import numpy as np
 from pathlib import Path
 
 # Importar clases del sistema de drift
-from monitoring.drift_simulator import DriftSimulator
-from monitoring.drift_detector import DriftDetector
-from monitoring.drift_evaluator import DriftEvaluator
-from monitoring.drift_alert_system import DriftAlertSystem
+from src.monitoring.drift_simulator import DriftSimulator
+from src.monitoring.drift_detector import DriftDetector
+from src.monitoring.drift_evaluator import DriftEvaluator
+from src.monitoring.drift_alert_system import DriftAlertSystem
 from src.utils.logger import get_logger, setup_logging
 
 # Configurar logging
