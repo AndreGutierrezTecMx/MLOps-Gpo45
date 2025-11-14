@@ -4,7 +4,7 @@ from modeling.modeling_pipeline import ModelPipeline
 def main():
     # Pipeline
     pipeline = ModelPipeline(
-        file_path="MLOps-Gpo45/data/raw/online_news_modified.csv",
+        file_path="data/raw/online_news_modified.csv",
         mlflow_experiment="Modeling_Experiment",
     )
 

@@ -155,7 +155,7 @@ class VersionTracker:
             mlflow.log_metrics(metrics)
 
             # Guardar el modelo completo
-            mlflow.sklearn.log_model(best_estimator, name=model_name.replace(" ", "_"), 
+            mlflow.sklearn.log_model(best_estimator, artifact_path=model_name.replace(" ", "_"), 
                                      input_example=self.X_test, registered_model_name=model_name)
 
             run_id = mlflow.active_run().info.run_id
