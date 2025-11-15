@@ -3,9 +3,9 @@ from pathlib import Path
 import mlflow
 import psutil
 import time
-from utils.logger import get_logger
-from constants.dvc_remote_type_enums import DvcRemoteType
-from utils.secrets_manager import SecretsManager
+from src.utils.logger import get_logger
+from src.constants.dvc_remote_type_enums import DvcRemoteType
+from src.utils.secrets_manager import SecretsManager
 import os
 import sys
 import random

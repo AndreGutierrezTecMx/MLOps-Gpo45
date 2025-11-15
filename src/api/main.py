@@ -2,6 +2,12 @@
 FastAPI Application para servir el modelo
 """
 
+import sys
+import os
+
+# Agregar el directorio raíz del proyecto al path de Python
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+
 from fastapi import FastAPI, HTTPException
 import pandas as pd
 

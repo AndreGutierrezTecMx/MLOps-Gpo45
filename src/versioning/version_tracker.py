@@ -9,9 +9,9 @@ import subprocess
 import sys
 from datetime import datetime
 from typing import Optional
-from versioning.version_control import VersionControl
+from src.versioning.version_control import VersionControl
 from typing import Dict, Any, Tuple
-from utils.logger import get_logger
+from src.utils.logger import get_logger
 from mlflow.entities import RunInfo as run_info
 import joblib
 

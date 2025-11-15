@@ -1,5 +1,10 @@
 # src/main.py
-from modeling.modeling_pipeline import ModelPipeline
+import sys
+import os
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
+
+from src.modeling.modeling_pipeline import ModelPipeline
 
 def main():
     # Pipeline

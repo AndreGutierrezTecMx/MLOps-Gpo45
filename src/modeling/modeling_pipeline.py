@@ -1,19 +1,19 @@
 from typing import Optional
 from pathlib import Path
-import utils.logger as lg
-from data.data_reader import DataReader
-from data.data_explorer import DataExplorer
-from data.data_cleaning import DataCleaning
-from constants.dvc_remote_type_enums import DvcRemoteType
-from versioning.version_tracker import VersionTracker
-from versioning.version_control import VersionControl
-from data.data_analysis import DataAnalysis
-from data.data_preprocessing import Preprocessor
-from modeling.data_modeling import ModelTrainer
-from constants.column_names import ColumnNames
+import src.utils.logger as lg
+from src.data.data_reader import DataReader
+from src.data.data_explorer import DataExplorer
+from src.data.data_cleaning import DataCleaning
+from src.constants.dvc_remote_type_enums import DvcRemoteType
+from src.versioning.version_tracker import VersionTracker
+from src.versioning.version_control import VersionControl
+from src.data.data_analysis import DataAnalysis
+from src.data.data_preprocessing import Preprocessor
+from src.modeling.data_modeling import ModelTrainer
+from src.constants.column_names import ColumnNames
 from mlflow.entities import RunInfo as run_info
 import json
-from utils.seed import set_seeds 
+from src.utils.seed import set_seeds 
 
 class ModelPipeline:
     def __init__(

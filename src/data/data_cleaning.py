@@ -3,8 +3,8 @@ import numpy as np
 
 from typing import Dict, Tuple, Optional, Union
 from pathlib import Path
-from utils.logger import get_logger
-from versioning.version_tracker import VersionTracker
+from src.utils.logger import get_logger
+from src.versioning.version_tracker import VersionTracker
 import os
 
 logger = get_logger(__name__)

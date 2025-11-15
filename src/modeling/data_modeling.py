@@ -29,8 +29,8 @@ from sklearn.ensemble import RandomForestRegressor, HistGradientBoostingRegresso
 
 from xgboost import XGBRegressor
 from scipy.stats import randint, uniform, loguniform
-from utils.logger import get_logger
-from versioning.version_tracker import VersionTracker
+from src.utils.logger import get_logger
+from src.versioning.version_tracker import VersionTracker
 
 logger = get_logger(__name__)
 

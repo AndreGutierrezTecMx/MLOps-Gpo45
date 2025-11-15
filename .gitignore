@@ -89,3 +89,4 @@ lightning_logs/
 /predictions/*
 /artifacts/*
 *.csv
+*.png

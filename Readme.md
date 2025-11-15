@@ -217,7 +217,202 @@ python src/modeling/modeling_pipeline.py
 
 ---
 
-## 🔧 MLOps Tools & Technologies
+## � Docker Deployment
+
+### Quick Start with Docker
+
+The project includes a complete Docker setup that automatically:
+1. ✅ Installs all dependencies
+2. ✅ Trains the ML model
+3. ✅ Starts the FastAPI server for predictions
+
+#### Prerequisites
+- Docker installed on your system ([Download Docker](https://www.docker.com/products/docker-desktop))
+
+#### Build the Docker Image
+
+```bash
+# Navigate to project root
+cd MLOps-Gpo45
+
+# Build the image
+docker build -t ml-service:latest .
+```
+
+#### Run the Container
+
+```bash
+# Run the container with FastAPI on port 8000
+docker run -p 8000:8000 ml-service:latest
+```
+
+**Expected Output:**
+```
+Entrenando modelo...
+[Training logs will appear here...]
+Iniciando API en puerto 8000...
+INFO:     Uvicorn running on http://0.0.0.0:8000
+INFO:     Application startup complete
+```
+
+#### Access the API
+
+Once the container is running:
+
+- **API Base URL:** `http://localhost:8000`
+- **Interactive API Docs (Swagger):** `http://localhost:8000/docs`
+- **Alternative Docs (ReDoc):** `http://localhost:8000/redoc`
+
+#### API Endpoints Examples
+
+**1. GET `/` - Root Endpoint**
+
+Get basic API information:
+
+```bash
+curl http://localhost:8000/
+```
+
+**Response:**
+```json
+{
+  "message": "MLOps-Gpo45 Model API",
+  "version": "1.0.0"
+}
+```
+
+**2. GET `/model-info` - Model Information**
+
+Get details about the loaded model:
+
+```bash
+curl http://localhost:8000/model-info
+```
+
+**Response:**
+```json
+{
+  "run_id": "abc123def456...",
+  "run_name": "HistGradientBoosting (Poisson)",
+  "metric": "R2",
+  "metric_value": 0.85
+}
+```
+
+**3. POST `/predict` - Make Predictions**
+
+Send article data to get predictions:
+
+```bash
+curl -X POST "http://localhost:8000/predict" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "data": [
+    {
+      "n_tokens_title": 10,
+      "n_tokens_content": 500,
+      "n_unique_tokens": 0.5,
+      "n_non_stop_words": 0.8,
+      "n_non_stop_unique_tokens": 0.6,
+      "num_hrefs": 5,
+      "num_self_hrefs": 2,
+      "num_imgs": 3,
+      "num_videos": 0,
+      "average_token_length": 4.5,
+      "num_keywords": 5,
+      "data_channel_is_lifestyle": 0,
+      "data_channel_is_entertainment": 1,
+      "data_channel_is_bus": 0,
+      "data_channel_is_socmed": 0,
+      "data_channel_is_tech": 0,
+      "data_channel_is_world": 0,
+      "kw_min_min": 0,
+      "kw_max_min": 0,
+      "kw_avg_min": 0,
+      "kw_min_max": 0,
+      "kw_max_max": 0,
+      "kw_avg_max": 0,
+      "kw_min_avg": 0,
+      "kw_max_avg": 0,
+      "kw_avg_avg": 0,
+      "self_reference_min_shares": 0,
+      "self_reference_max_shares": 0,
+      "self_reference_avg_sharess": 0,
+      "weekday_is_monday": 0,
+      "weekday_is_tuesday": 0,
+      "weekday_is_wednesday": 0,
+      "weekday_is_thursday": 0,
+      "weekday_is_friday": 0,
+      "weekday_is_saturday": 0,
+      "weekday_is_sunday": 0,
+      "is_weekend": 0,
+      "LDA_00": 0.2,
+      "LDA_01": 0.3,
+      "LDA_02": 0.1,
+      "LDA_03": 0.2,
+      "LDA_04": 0.2,
+      "global_subjectivity": 0.5,
+      "global_sentiment_polarity": 0.1,
+      "global_rate_positive_words": 0.3,
+      "global_rate_negative_words": 0.1,
+      "rate_positive_words": 0.75,
+      "rate_negative_words": 0.25,
+      "avg_positive_polarity": 0.4,
+      "min_positive_polarity": 0.2,
+      "max_positive_polarity": 0.6,
+      "avg_negative_polarity": -0.3,
+      "min_negative_polarity": -0.5,
+      "max_negative_polarity": -0.1,
+      "title_subjectivity": 0.4,
+      "title_sentiment_polarity": 0.2,
+      "abs_title_subjectivity": 0.4,
+      "abs_title_sentiment_polarity": 0.2,
+      "article_year": 2013,
+      "timedelta":231,
+      "article_month":11,
+      "article_day":1
+    }
+  ]
+}'
+```
+
+**Response:**
+```json
+{
+  "predictions": [3456.78]
+}
+```
+
+#### Advanced Docker Usage
+
+**Run container in background (detached mode):**
+```bash
+docker run -d -p 8000:8000 --name ml-service ml-service:latest
+```
+
+**View container logs:**
+```bash
+docker logs ml-service
+```
+
+**Stop the container:**
+```bash
+docker stop ml-service
+```
+
+**Remove the container:**
+```bash
+docker rm ml-service
+```
+
+**View running containers:**
+```bash
+docker ps
+```
+
+---
+
+## �🔧 MLOps Tools & Technologies
 
 | Tool | Purpose | Status |
 |------|---------|--------|
@@ -227,8 +422,8 @@ python src/modeling/modeling_pipeline.py
 | **scikit-learn** | ML Modeling | ✅ Implemented |
 | **pandas** | Data Processing | ✅ Implemented |
 | **XGBoost** | Gradient Boosting | ✅ Implemented |
-| **Docker** | Containerization | 🔄 In Progress |
-| **FastAPI** | Model Serving | 🔄 In Progress |
+| **Docker** | Containerization | ✅ Implemented |
+| **FastAPI** | Model Serving | ✅ Implemented |
 
 ---
 
@@ -286,9 +481,9 @@ python src/modeling/modeling_pipeline.py
 | 2. Data Exploration | ✅ Complete | 100% |
 | 3. Data Cleaning | ✅ Complete | 100% |
 | 4. Feature Engineering | ✅ Complete | 100% |
-| 5. Model Training | 🔄 In Progress | 75% |
+| 5. Model Training | ✅ Complete | 100% |
 | 6. Testing & Validation | ✅ Complete | 100% |
-| 7. Model Deployment | 🔄 In Progress | 25% |
+| 7. Model Deployment | ✅ Complete | 100% |
 | 8. Monitoring & Maintenance | ⏳ Planned | 0% |
 
 ---
@@ -314,12 +509,6 @@ For questions or issues, please contact the team members listed in the Team Orga
 
 ---
 
-## 📄 License
-
-*License information to be added*
-
----
-
 ## 🙏 Acknowledgments
 
 - Mashable for providing the dataset
@@ -329,5 +518,5 @@ For questions or issues, please contact the team members listed in the Team Orga
 ---
 
 **Last Updated:** November 2025  
-**Version:** 1.0.0  
+**Version:** 1.3.0  
 **Project Status:** 🚀 Active Development
