@@ -44,8 +44,8 @@ class DataAnalysis:
         return combined.sort_values(by="count", ascending=False)
 
     def get_weekday_counts(self):
-        counts = {col: self.df[self.df[col] == 1].shape[0] for col in weekday_cols}
         weekday_cols = [col for col in self.df.columns if col.startswith("weekday_is")]
+        counts = {col: self.df[self.df[col] == 1].shape[0] for col in weekday_cols}
         day_mapping = {
             "weekday_is_monday": "Monday",
             "weekday_is_tuesday": "Tuesday",
