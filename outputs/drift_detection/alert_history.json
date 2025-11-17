@@ -1,0 +1,332 @@
+[
+  {
+    "timestamp": "2025-11-13T22:33:51.533399",
+    "severity": "WARNING",
+    "metric": "js_divergence",
+    "feature": "n_tokens_content",
+    "value": 0.17439352766027988,
+    "threshold_warning": 0.15,
+    "threshold_critical": 0.3,
+    "message": "⚠️  ADVERTENCIA: Jensen-Shannon divergence de 'n_tokens_content' alcanzó 0.1744. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.533399",
+    "severity": "WARNING",
+    "metric": "psi",
+    "feature": "num_hrefs",
+    "value": 0.12118027753551666,
+    "threshold_warning": 0.1,
+    "threshold_critical": 0.25,
+    "message": "⚠️  ADVERTENCIA: Population Stability Index de 'num_hrefs' alcanzó 0.1212. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.533399",
+    "severity": "WARNING",
+    "metric": "js_divergence",
+    "feature": "num_hrefs",
+    "value": 0.29481543952639966,
+    "threshold_warning": 0.15,
+    "threshold_critical": 0.3,
+    "message": "⚠️  ADVERTENCIA: Jensen-Shannon divergence de 'num_hrefs' alcanzó 0.2948. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.533399",
+    "severity": "WARNING",
+    "metric": "js_divergence",
+    "feature": "kw_avg_avg",
+    "value": 0.17268803714931732,
+    "threshold_warning": 0.15,
+    "threshold_critical": 0.3,
+    "message": "⚠️  ADVERTENCIA: Jensen-Shannon divergence de 'kw_avg_avg' alcanzó 0.1727. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.533399",
+    "severity": "WARNING",
+    "metric": "psi",
+    "feature": "LDA_00",
+    "value": 0.22330477021545686,
+    "threshold_warning": 0.1,
+    "threshold_critical": 0.25,
+    "message": "⚠️  ADVERTENCIA: Population Stability Index de 'LDA_00' alcanzó 0.2233. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.533399",
+    "severity": "WARNING",
+    "metric": "js_divergence",
+    "feature": "LDA_00",
+    "value": 0.19888354712857859,
+    "threshold_warning": 0.15,
+    "threshold_critical": 0.3,
+    "message": "⚠️  ADVERTENCIA: Jensen-Shannon divergence de 'LDA_00' alcanzó 0.1989. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534107",
+    "severity": "WARNING",
+    "metric": "js_divergence",
+    "feature": "n_tokens_content",
+    "value": 0.20021639774176922,
+    "threshold_warning": 0.15,
+    "threshold_critical": 0.3,
+    "message": "⚠️  ADVERTENCIA: Jensen-Shannon divergence de 'n_tokens_content' alcanzó 0.2002. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534107",
+    "severity": "WARNING",
+    "metric": "psi",
+    "feature": "num_hrefs",
+    "value": 0.12148660482968471,
+    "threshold_warning": 0.1,
+    "threshold_critical": 0.25,
+    "message": "⚠️  ADVERTENCIA: Population Stability Index de 'num_hrefs' alcanzó 0.1215. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534107",
+    "severity": "WARNING",
+    "metric": "js_divergence",
+    "feature": "num_hrefs",
+    "value": 0.25007389587946155,
+    "threshold_warning": 0.15,
+    "threshold_critical": 0.3,
+    "message": "⚠️  ADVERTENCIA: Jensen-Shannon divergence de 'num_hrefs' alcanzó 0.2501. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534107",
+    "severity": "CRITICAL",
+    "metric": "psi",
+    "feature": "num_imgs",
+    "value": 1.682314177149734,
+    "threshold_warning": 0.1,
+    "threshold_critical": 0.25,
+    "message": "🔴 CRÍTICO: Population Stability Index de 'num_imgs' alcanzó 1.6823. Se requiere acción inmediata."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534107",
+    "severity": "CRITICAL",
+    "metric": "ks_statistic",
+    "feature": "num_imgs",
+    "value": 0.4553726169844021,
+    "threshold_warning": 0.15,
+    "threshold_critical": 0.3,
+    "message": "🔴 CRÍTICO: Kolmogorov-Smirnov statistic de 'num_imgs' alcanzó 0.4554. Se requiere acción inmediata."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534107",
+    "severity": "CRITICAL",
+    "metric": "js_divergence",
+    "feature": "num_imgs",
+    "value": 0.41332657818895996,
+    "threshold_warning": 0.15,
+    "threshold_critical": 0.3,
+    "message": "🔴 CRÍTICO: Jensen-Shannon divergence de 'num_imgs' alcanzó 0.4133. Se requiere acción inmediata."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534107",
+    "severity": "WARNING",
+    "metric": "psi",
+    "feature": "kw_avg_avg",
+    "value": 0.2015183208519392,
+    "threshold_warning": 0.1,
+    "threshold_critical": 0.25,
+    "message": "⚠️  ADVERTENCIA: Population Stability Index de 'kw_avg_avg' alcanzó 0.2015. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534107",
+    "severity": "WARNING",
+    "metric": "js_divergence",
+    "feature": "kw_avg_avg",
+    "value": 0.257839960676541,
+    "threshold_warning": 0.15,
+    "threshold_critical": 0.3,
+    "message": "⚠️  ADVERTENCIA: Jensen-Shannon divergence de 'kw_avg_avg' alcanzó 0.2578. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534107",
+    "severity": "WARNING",
+    "metric": "psi",
+    "feature": "LDA_00",
+    "value": 0.1595695533788914,
+    "threshold_warning": 0.1,
+    "threshold_critical": 0.25,
+    "message": "⚠️  ADVERTENCIA: Population Stability Index de 'LDA_00' alcanzó 0.1596. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534107",
+    "severity": "WARNING",
+    "metric": "js_divergence",
+    "feature": "LDA_00",
+    "value": 0.23808806950799424,
+    "threshold_warning": 0.15,
+    "threshold_critical": 0.3,
+    "message": "⚠️  ADVERTENCIA: Jensen-Shannon divergence de 'LDA_00' alcanzó 0.2381. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534107",
+    "severity": "WARNING",
+    "metric": "js_divergence",
+    "feature": "global_subjectivity",
+    "value": 0.23362055552626362,
+    "threshold_warning": 0.15,
+    "threshold_critical": 0.3,
+    "message": "⚠️  ADVERTENCIA: Jensen-Shannon divergence de 'global_subjectivity' alcanzó 0.2336. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534849",
+    "severity": "CRITICAL",
+    "metric": "psi",
+    "feature": "n_tokens_content",
+    "value": 2.1404135882656954,
+    "threshold_warning": 0.1,
+    "threshold_critical": 0.25,
+    "message": "🔴 CRÍTICO: Population Stability Index de 'n_tokens_content' alcanzó 2.1404. Se requiere acción inmediata."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534849",
+    "severity": "WARNING",
+    "metric": "js_divergence",
+    "feature": "n_tokens_content",
+    "value": 0.22139074908323422,
+    "threshold_warning": 0.15,
+    "threshold_critical": 0.3,
+    "message": "⚠️  ADVERTENCIA: Jensen-Shannon divergence de 'n_tokens_content' alcanzó 0.2214. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534849",
+    "severity": "CRITICAL",
+    "metric": "psi",
+    "feature": "num_hrefs",
+    "value": 1.7746796326019147,
+    "threshold_warning": 0.1,
+    "threshold_critical": 0.25,
+    "message": "🔴 CRÍTICO: Population Stability Index de 'num_hrefs' alcanzó 1.7747. Se requiere acción inmediata."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534849",
+    "severity": "WARNING",
+    "metric": "ks_statistic",
+    "feature": "num_hrefs",
+    "value": 0.1689774696707106,
+    "threshold_warning": 0.15,
+    "threshold_critical": 0.3,
+    "message": "⚠️  ADVERTENCIA: Kolmogorov-Smirnov statistic de 'num_hrefs' alcanzó 0.1690. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534849",
+    "severity": "WARNING",
+    "metric": "js_divergence",
+    "feature": "num_hrefs",
+    "value": 0.26268320942796436,
+    "threshold_warning": 0.15,
+    "threshold_critical": 0.3,
+    "message": "⚠️  ADVERTENCIA: Jensen-Shannon divergence de 'num_hrefs' alcanzó 0.2627. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534849",
+    "severity": "CRITICAL",
+    "metric": "psi",
+    "feature": "num_imgs",
+    "value": 1.784812405489653,
+    "threshold_warning": 0.1,
+    "threshold_critical": 0.25,
+    "message": "🔴 CRÍTICO: Population Stability Index de 'num_imgs' alcanzó 1.7848. Se requiere acción inmediata."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534849",
+    "severity": "CRITICAL",
+    "metric": "ks_statistic",
+    "feature": "num_imgs",
+    "value": 0.4553726169844021,
+    "threshold_warning": 0.15,
+    "threshold_critical": 0.3,
+    "message": "🔴 CRÍTICO: Kolmogorov-Smirnov statistic de 'num_imgs' alcanzó 0.4554. Se requiere acción inmediata."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534849",
+    "severity": "CRITICAL",
+    "metric": "js_divergence",
+    "feature": "num_imgs",
+    "value": 0.4358057807633396,
+    "threshold_warning": 0.15,
+    "threshold_critical": 0.3,
+    "message": "🔴 CRÍTICO: Jensen-Shannon divergence de 'num_imgs' alcanzó 0.4358. Se requiere acción inmediata."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534849",
+    "severity": "CRITICAL",
+    "metric": "psi",
+    "feature": "kw_avg_avg",
+    "value": 0.4260066794220136,
+    "threshold_warning": 0.1,
+    "threshold_critical": 0.25,
+    "message": "🔴 CRÍTICO: Population Stability Index de 'kw_avg_avg' alcanzó 0.4260. Se requiere acción inmediata."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534849",
+    "severity": "WARNING",
+    "metric": "ks_statistic",
+    "feature": "kw_avg_avg",
+    "value": 0.23795493934142115,
+    "threshold_warning": 0.15,
+    "threshold_critical": 0.3,
+    "message": "⚠️  ADVERTENCIA: Kolmogorov-Smirnov statistic de 'kw_avg_avg' alcanzó 0.2380. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534849",
+    "severity": "CRITICAL",
+    "metric": "js_divergence",
+    "feature": "kw_avg_avg",
+    "value": 0.3432309060526701,
+    "threshold_warning": 0.15,
+    "threshold_critical": 0.3,
+    "message": "🔴 CRÍTICO: Jensen-Shannon divergence de 'kw_avg_avg' alcanzó 0.3432. Se requiere acción inmediata."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534849",
+    "severity": "WARNING",
+    "metric": "psi",
+    "feature": "LDA_00",
+    "value": 0.14247855937145054,
+    "threshold_warning": 0.1,
+    "threshold_critical": 0.25,
+    "message": "⚠️  ADVERTENCIA: Population Stability Index de 'LDA_00' alcanzó 0.1425. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534849",
+    "severity": "WARNING",
+    "metric": "js_divergence",
+    "feature": "LDA_00",
+    "value": 0.2484794657385482,
+    "threshold_warning": 0.15,
+    "threshold_critical": 0.3,
+    "message": "⚠️  ADVERTENCIA: Jensen-Shannon divergence de 'LDA_00' alcanzó 0.2485. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534849",
+    "severity": "WARNING",
+    "metric": "psi",
+    "feature": "global_subjectivity",
+    "value": 0.15968593522028218,
+    "threshold_warning": 0.1,
+    "threshold_critical": 0.25,
+    "message": "⚠️  ADVERTENCIA: Population Stability Index de 'global_subjectivity' alcanzó 0.1597. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534849",
+    "severity": "WARNING",
+    "metric": "ks_statistic",
+    "feature": "global_subjectivity",
+    "value": 0.15216637781629117,
+    "threshold_warning": 0.15,
+    "threshold_critical": 0.3,
+    "message": "⚠️  ADVERTENCIA: Kolmogorov-Smirnov statistic de 'global_subjectivity' alcanzó 0.1522. Monitorear de cerca."
+  },
+  {
+    "timestamp": "2025-11-13T22:33:51.534849",
+    "severity": "CRITICAL",
+    "metric": "js_divergence",
+    "feature": "global_subjectivity",
+    "value": 0.30249792925526736,
+    "threshold_warning": 0.15,
+    "threshold_critical": 0.3,
+    "message": "🔴 CRÍTICO: Jensen-Shannon divergence de 'global_subjectivity' alcanzó 0.3025. Se requiere acción inmediata."
+  }
+]

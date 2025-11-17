@@ -1,20 +1,27 @@
-from utils.dependency_checker import DependencyChecker
+# src/main.py
+import sys
+import os
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
+
+from src.modeling.modeling_pipeline import ModelPipeline
 
 def main():
-    # Verificar e instalar dependencias
-    DependencyChecker.ensure_dependencies("configs/dependencies.json")
+    # Pipeline
+    pipeline = ModelPipeline(
+        file_path="data/raw/online_news_modified.csv",
+        mlflow_experiment="Modeling_Experiment",
+    )
 
-    from modeling.modeling_pipeline import ModelPipeline
-    # Inicializar y ejecutar el pipeline de modelado
-    pipeline = ModelPipeline(file_path="MLOps-Gpo45/data/raw/online_news_modified.csv",
-                              mlflow_experiment="Modeling_Experiment")
-    (pipeline.load_data()
+    (pipeline
+        .load_data()
         .explore_data()
         .clean_data()
-        #.plot_analysis() # Opcional: Descomentar para analizar gráficos.
+        .plot_analysis()
         .preprocess_data()
         .train_models()
-        .get_best_model_info())
+        .get_best_model_info()
+    )
 
 if __name__ == "__main__":
     main()

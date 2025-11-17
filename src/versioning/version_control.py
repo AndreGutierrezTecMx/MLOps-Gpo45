@@ -3,9 +3,9 @@ from pathlib import Path
 import mlflow
 import psutil
 import time
-from utils.logger import get_logger
-from constants.dvc_remote_type_enums import DvcRemoteType
-from utils.secrets_manager import SecretsManager
+from src.utils.logger import get_logger
+from src.constants.dvc_remote_type_enums import DvcRemoteType
+from src.utils.secrets_manager import SecretsManager
 import os
 import sys
 import random
@@ -37,7 +37,7 @@ class VersionControl:
             dvc_remote_name (str): Nombre del remoto en DVC.
             secrets_manager (SecretsManager, optional): Para obtener credenciales seguras.
         """
-        self.project_root = Path(__file__).resolve().parents[3]
+        self.project_root = Path(__file__).resolve().parents[2]
         os.chdir(self.project_root)
         self.dvc_remote_type = dvc_remote_type
         self.dvc_remote_path = dvc_remote_path

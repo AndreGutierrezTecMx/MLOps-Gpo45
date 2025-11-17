@@ -29,8 +29,8 @@ from sklearn.ensemble import RandomForestRegressor, HistGradientBoostingRegresso
 
 from xgboost import XGBRegressor
 from scipy.stats import randint, uniform, loguniform
-from utils.logger import get_logger
-from versioning.version_tracker import VersionTracker
+from src.utils.logger import get_logger
+from src.versioning.version_tracker import VersionTracker
 
 logger = get_logger(__name__)
 
@@ -48,6 +48,9 @@ class ModelTrainer:
         self.preprocess = preprocess
         self.X_train, self.X_test = X_train, X_test
         self.y_train, self.y_test = y_train, y_test
+      
+        # guarda la semilla configurable
+        self.random_state = int(random_state)
 
         # K-Fold reproducible (shuffle + random_state) para las búsquedas aleatorias
         self.cv = KFold(n_splits=cv_splits, shuffle=True, random_state=random_state)
@@ -114,7 +117,7 @@ class ModelTrainer:
             n_iter_no_change=20,
             tol=1e-4,
             max_bins=255,
-            random_state=42,
+            random_state=self.random_state,
         )
 
         # Pipeline: preprocesador + modelo (sin TTR)
@@ -138,7 +141,7 @@ class ModelTrainer:
             scoring="neg_mean_absolute_error",
             cv=self.cv,
             n_jobs=-1,
-            random_state=42,
+            random_state=self.random_state, #Semilla Configurable
             verbose=1,
         )
 
@@ -177,7 +180,7 @@ class ModelTrainer:
             scoring="r2",
             cv=self.cv,
             n_jobs=-1,
-            random_state=42,
+            random_state=self.random_state, #Semilla Configurable
             verbose=1,
         )
 
@@ -205,7 +208,7 @@ class ModelTrainer:
         logger.info("⏳ Entrenando RandomForest (rápido, con TTR)…")
 
         # Estimador base RandomForest (paralelizado)
-        rf = RandomForestRegressor(n_jobs=-1, random_state=42)
+        rf = RandomForestRegressor(n_jobs=-1, random_state=self.random_state) #Semilla Configurable
         pipe = self._make_pipe_ttr(rf)  # prep + TTR + RF
 
         # Espacio de hiperparámetros compacto para acelerar iteraciones
@@ -226,7 +229,7 @@ class ModelTrainer:
             scoring="r2",
             cv=2,                   # CV reducido para acelerar (trade-off entre tiempo y estabilidad)
             n_jobs=-1,
-            random_state=42,
+            random_state=self.random_state, #Semilla Configurable
             verbose=1,
         )
 
@@ -256,7 +259,7 @@ class ModelTrainer:
         logger.info("⏳ Entrenando XGBoost (rápido, con TTR)…")
 
         # Estimador base XGBoost (modo 'hist' para velocidad y n_jobs para paralelizar)
-        xgb = XGBRegressor(tree_method="hist", random_state=42, n_jobs=-1)
+        xgb = XGBRegressor(tree_method="hist", random_state=self.random_state, n_jobs=-1) #Semilla Configurable
         pipe = self._make_pipe_ttr(xgb)  # prep + TTR + XGB
 
         # Espacio de hiperparámetros (rápido) centrado en los knobs más influyentes
@@ -279,7 +282,7 @@ class ModelTrainer:
             scoring="r2",
             cv=2,                    # CV reducido para rapidez
             n_jobs=-1,
-            random_state=42,
+            random_state=self.random_state, #Semilla Configurable
             verbose=1,
         )
 
@@ -297,4 +300,5 @@ class ModelTrainer:
         self.best_models["XGBoost (tuned fast)"] = best
         self.results["XGBoost (tuned fast)"] = metrics
         self.version_tracker.track_mlflow_change("XGBoost (tuned fast)", best, search.best_params_, metrics)
+
         return best, metrics

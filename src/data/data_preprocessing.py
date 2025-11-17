@@ -44,7 +44,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import PowerTransformer, MinMaxScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
-from utils.logger import get_logger
+from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
 

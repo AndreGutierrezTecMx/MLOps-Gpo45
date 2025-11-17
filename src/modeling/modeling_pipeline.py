@@ -1,16 +1,19 @@
 from typing import Optional
-import utils.logger as lg
-from data.data_reader import DataReader
-from data.data_explorer import DataExplorer
-from data.data_cleaning import DataCleaning
-from constants.dvc_remote_type_enums import DvcRemoteType
-from versioning.version_tracker import VersionTracker
-from versioning.version_control import VersionControl
-from data.data_analysis import DataAnalysis
-from data.data_preprocessing import Preprocessor
-from modeling.data_modeling import ModelTrainer
-from constants.column_names import ColumnNames
+from pathlib import Path
+import src.utils.logger as lg
+from src.data.data_reader import DataReader
+from src.data.data_explorer import DataExplorer
+from src.data.data_cleaning import DataCleaning
+from src.constants.dvc_remote_type_enums import DvcRemoteType
+from src.versioning.version_tracker import VersionTracker
+from src.versioning.version_control import VersionControl
+from src.data.data_analysis import DataAnalysis
+from src.data.data_preprocessing import Preprocessor
+from src.modeling.data_modeling import ModelTrainer
+from src.constants.column_names import ColumnNames
 from mlflow.entities import RunInfo as run_info
+import json
+from src.utils.seed import set_seeds 
 
 class ModelPipeline:
     def __init__(
@@ -24,8 +27,9 @@ class ModelPipeline:
         dvc_remote_type: DvcRemoteType = DvcRemoteType.LOCAL,
         dvc_remote_name: str = "myremote",
         dvc_remote_path: str = "../../dvc_remote",
-        output_dir: str = "/MLOps-Gpo45/data/",
-        metadata_path: str = "/MLOps-Gpo45/data/interim/registry/data_versions.json"):
+        output_dir: str = "data/",
+        metadata_path: str = "data/interim/registry/data_versions.json",
+        ):
         lg.setup_logging()
         self.logger = lg.get_logger(__name__)
         self.logger.info("Inicializando el pipeline de modelado...")
@@ -39,6 +43,13 @@ class ModelPipeline:
                             dvc_remote_path=dvc_remote_path)
         self.vt = VersionTracker(version_control=self.vc, output_dir=f'{self.vc.project_root}/{output_dir}interim', metadata_path=f'{self.vc.project_root}/{metadata_path}')
         self.dr = DataReader(file_path=f'{self.vc.project_root}/{self.file_path}', repo_url=self.repo_url, revision=self.revision)
+         # --- leer semilla desde configs/experiment.json ---
+        config_path = Path(self.vc.project_root) / "configs" / "experiment.json"
+        with open(config_path, "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+        seed = int(cfg.get("seed", 42))
+        set_seeds(seed)  # << fijamos semillas aquí para paso 3 
+        self.seed = int(seed) #Semilla para repetibilidad
         
     
     def load_data(self):
@@ -79,7 +90,7 @@ class ModelPipeline:
     
     def preprocess_data(self):
         self.logger.info("Iniciando etapa de preprocesamiento…")
-        pre = Preprocessor(df_clean=self.df, target_col=ColumnNames.SHARES.value, test_size=0.2, random_state=42).run()
+        pre = Preprocessor(df_clean=self.df, target_col=ColumnNames.SHARES.value, test_size=0.2, random_state=self.seed).run() #Semilla configurable
         self.X_train, self.X_test, self.y_train, self.y_test = pre.get_splits()
         self.preprocess_ct = pre.get_preprocess()
         self.feature_groups = pre.get_feature_groups()
@@ -97,7 +108,7 @@ class ModelPipeline:
         self.logger.info("Iniciando etapa de modelado…")
         self.trainer = ModelTrainer(preprocess=self.preprocess_ct,X_train=self.X_train, X_test=self.X_test,
                                y_train=self.y_train, y_test=self.y_test, version_tracker=self.vt,
-                               cv_splits=5, random_state=42)
+                               cv_splits=5, random_state=self.seed) #Semilla Configurable
         metrics = {}
         best_estimators = {}
         # HGB (Poisson)
